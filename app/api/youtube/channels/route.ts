@@ -44,7 +44,12 @@ export async function GET() {
   }
 
   const data = await res.json();
-  const channels: YouTubeChannel[] = (data.items ?? []).map((item: any) => ({
+  interface YTItem {
+    id: string;
+    snippet: { title: string; description: string; thumbnails?: { default?: { url?: string } } };
+    statistics?: { subscriberCount?: string; videoCount?: string };
+  }
+  const channels: YouTubeChannel[] = (data.items ?? []).map((item: YTItem) => ({
     id: item.id,
     title: item.snippet.title,
     description: item.snippet.description,

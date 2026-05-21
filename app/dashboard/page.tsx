@@ -39,7 +39,6 @@ export default async function DashboardPage({
     0,
     (userData?.free_uploads_limit ?? 3) - (userData?.free_uploads_used ?? 0)
   );
-  const totalUploadsRemaining = freeRemaining + packCredits;
 
   return (
     <div className="min-h-screen bg-zinc-50">
