@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 
 const PACKS: Record<number, { amount: number; label: string }> = {
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
   const origin = request.headers.get("origin") ?? "http://localhost:3000";
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     mode: "payment",
     line_items: [
       {
