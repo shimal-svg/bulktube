@@ -5,11 +5,13 @@ import { useState } from "react";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function signInWithGoogle() {
     setLoading(true);
+    setError(null);
     const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
@@ -25,6 +27,10 @@ export default function LoginPage() {
         },
       },
     });
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+    }
   }
 
   return (
@@ -47,6 +53,10 @@ export default function LoginPage() {
           <GoogleIcon />
           {loading ? "Redirecting…" : "Continue with Google"}
         </button>
+
+        {error && (
+          <p className="mt-4 text-center text-xs text-red-500">{error}</p>
+        )}
 
         <p className="mt-6 text-center text-xs text-zinc-400">
           By signing in you grant drrop.io permission to upload videos on your
