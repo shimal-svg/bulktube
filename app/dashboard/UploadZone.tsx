@@ -272,7 +272,7 @@ export default function UploadZone() {
           youtubeVideoId,
           youtubeUrl: `https://youtu.be/${youtubeVideoId}`,
           progress: 100,
-          uploadError: `Uploaded (ID: ${youtubeVideoId}) but not saved to BulkTube — contact support`,
+          uploadError: `Uploaded (ID: ${youtubeVideoId}) but not saved to drrop.io — contact support`,
         })
         return
       }
@@ -282,7 +282,7 @@ export default function UploadZone() {
         youtubeVideoId,
         youtubeUrl: `https://youtu.be/${youtubeVideoId}`,
         progress: 100,
-        uploadError: `Uploaded (ID: ${youtubeVideoId}) but not saved to BulkTube — contact support`,
+        uploadError: `Uploaded (ID: ${youtubeVideoId}) but not saved to drrop.io — contact support`,
       })
       return
     }

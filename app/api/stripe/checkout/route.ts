@@ -33,7 +33,7 @@ export async function POST(request: Request) {
         price_data: {
           currency: "usd",
           unit_amount: pack.amount,
-          product_data: { name: `BulkTube — ${pack.label}` },
+          product_data: { name: `drrop.io — ${pack.label}` },
         },
         quantity: 1,
       },

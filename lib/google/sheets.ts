@@ -1,6 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const SPREADSHEET_TITLE = "BulkTube Uploads";
+const SPREADSHEET_TITLE = "drrop.io Uploads";
 const SHEET_TAB = "Uploads";
 const HEADERS = [
   "Upload Date",

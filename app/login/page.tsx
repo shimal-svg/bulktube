@@ -32,7 +32,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm rounded-2xl bg-white p-10 shadow-sm border border-zinc-100">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
-            BulkTube
+            drrop.io
           </h1>
           <p className="mt-2 text-sm text-zinc-500">
             Upload videos to YouTube in bulk
@@ -49,7 +49,7 @@ export default function LoginPage() {
         </button>
 
         <p className="mt-6 text-center text-xs text-zinc-400">
-          By signing in you grant BulkTube permission to upload videos on your
+          By signing in you grant drrop.io permission to upload videos on your
           behalf.
         </p>
       </div>

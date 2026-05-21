@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BulkTube",
+  title: "drrop.io",
   description: "Upload videos to YouTube in bulk",
 };
 

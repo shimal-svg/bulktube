@@ -43,7 +43,7 @@ export default async function DashboardPage({
   return (
     <div className="min-h-screen bg-zinc-50">
       <header className="border-b border-zinc-200 bg-white px-6 py-4 flex items-center justify-between">
-        <span className="font-bold text-zinc-900">BulkTube</span>
+        <span className="font-bold text-zinc-900">drrop.io</span>
         <div className="flex items-center gap-3">
           {userData?.active_youtube_channel_thumbnail && (
             // eslint-disable-next-line @next/next/no-img-element
