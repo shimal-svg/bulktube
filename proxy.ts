@@ -8,8 +8,10 @@ export async function proxy(request: NextRequest) {
 
   if (isPublic) return NextResponse.next();
 
+  // Supabase SSR chunks large JWTs: sb-<ref>-auth-token.0, .1, etc.
+  // Use includes() so chunked cookies are recognised alongside unchunked ones.
   const hasSession = request.cookies.getAll().some(
-    (c) => c.name.startsWith("sb-") && c.name.endsWith("-auth-token")
+    (c) => c.name.startsWith("sb-") && c.name.includes("-auth-token")
   );
 
   if (!hasSession) {
