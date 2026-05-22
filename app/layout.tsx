@@ -17,6 +17,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "drrop.io",
   description: "Upload videos to YouTube in bulk",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
