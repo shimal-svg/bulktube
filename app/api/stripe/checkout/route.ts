@@ -3,6 +3,7 @@ import { getStripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 
 const PACKS: Record<number, { amount: number; label: string }> = {
+  1:   { amount: 100,   label: "1 Credit (Test)" },
   20:  { amount: 2000,  label: "20 Credits" },
   60:  { amount: 6000,  label: "60 Credits" },
   100: { amount: 10000, label: "100 Credits" },

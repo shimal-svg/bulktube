@@ -8,11 +8,15 @@ const PACKS = [
   { credits: 100, price: 100, popular: false },
 ];
 
+const TEST_EMAIL = "shimal@sdlosangeles.com";
+
 export default async function CreditsPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
+
+  const isInternal = user.email === TEST_EMAIL;
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -36,49 +40,61 @@ export default async function CreditsPage() {
 
         <div className="grid grid-cols-3 gap-6">
           {PACKS.map((pack) => (
-            <div
-              key={pack.credits}
-              className={`relative rounded-2xl border bg-white p-8 flex flex-col items-center gap-4 ${
-                pack.popular
-                  ? "border-zinc-900 shadow-md"
-                  : "border-zinc-200 shadow-sm"
-              }`}
-            >
-              {pack.popular && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap">
-                  Most popular
-                </span>
-              )}
-
-              <div className="text-5xl font-bold text-zinc-900">
-                {pack.credits}
-              </div>
-              <div className="text-zinc-500 text-sm -mt-2">credits</div>
-
-              <div className="text-2xl font-semibold text-zinc-900">
-                ${pack.price}
-              </div>
-              <div className="text-zinc-400 text-xs">
-                ${(pack.price / pack.credits).toFixed(2)} per upload
-              </div>
-
-              <form action="/api/stripe/checkout" method="POST" className="w-full mt-2">
-                <input type="hidden" name="credits" value={pack.credits} />
-                <button
-                  type="submit"
-                  className={`w-full rounded-lg py-2.5 text-sm font-medium transition cursor-pointer ${
-                    pack.popular
-                      ? "bg-zinc-900 text-white hover:bg-zinc-700"
-                      : "bg-zinc-100 text-zinc-800 hover:bg-zinc-200"
-                  }`}
-                >
-                  Buy {pack.credits} credits
-                </button>
-              </form>
-            </div>
+            <PackCard key={pack.credits} pack={pack} />
           ))}
         </div>
+
+        {isInternal && (
+          <div className="mt-12">
+            <p className="text-xs text-zinc-400 text-center mb-4 uppercase tracking-wide">
+              Internal testing only
+            </p>
+            <div className="max-w-[200px] mx-auto">
+              <PackCard pack={{ credits: 1, price: 1, popular: false }} />
+            </div>
+          </div>
+        )}
       </main>
+    </div>
+  );
+}
+
+function PackCard({ pack }: { pack: { credits: number; price: number; popular: boolean } }) {
+  return (
+    <div
+      className={`relative rounded-2xl border bg-white p-8 flex flex-col items-center gap-4 ${
+        pack.popular ? "border-zinc-900 shadow-md" : "border-zinc-200 shadow-sm"
+      }`}
+    >
+      {pack.popular && (
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-xs font-medium px-3 py-1 rounded-full whitespace-nowrap">
+          Most popular
+        </span>
+      )}
+
+      <div className="text-5xl font-bold text-zinc-900">{pack.credits}</div>
+      <div className="text-zinc-500 text-sm -mt-2">
+        {pack.credits === 1 ? "credit" : "credits"}
+      </div>
+
+      <div className="text-2xl font-semibold text-zinc-900">${pack.price}</div>
+      <div className="text-zinc-400 text-xs">
+        ${(pack.price / pack.credits).toFixed(2)} per upload
+      </div>
+
+      <form action="/api/stripe/checkout" method="POST" className="w-full mt-2">
+        <input type="hidden" name="credits" value={pack.credits} />
+        <button
+          type="submit"
+          className={`w-full rounded-lg py-2.5 text-sm font-medium transition cursor-pointer ${
+            pack.popular
+              ? "bg-zinc-900 text-white hover:bg-zinc-700"
+              : "bg-zinc-100 text-zinc-800 hover:bg-zinc-200"
+          }`}
+        >
+          Buy {pack.credits} {pack.credits === 1 ? "credit" : "credits"}
+        </button>
+      </form>
     </div>
   );
 }
