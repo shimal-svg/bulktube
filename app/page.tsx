@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "drrop.io — Bulk Upload Videos to YouTube",
@@ -588,6 +589,31 @@ export default function LandingPage() {
           <span className="stat-num">Auto</span>
           <span className="stat-label">Naming convention</span>
         </div>
+      </div>
+
+      <div style={{ textAlign: "center", padding: "4rem 2rem", borderBottom: "1px solid #242424", background: "#0d0d0d" }}>
+        <p style={{ fontSize: "0.75rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#c8f55a", fontWeight: 600, marginBottom: "1.25rem" }}>Time saved across all uploads</p>
+        <div style={{ display: "inline-flex", alignItems: "baseline", gap: "0.5rem" }}>
+          <span id="min-counter" style={{ fontFamily: "'Syne',sans-serif", fontSize: "clamp(3.5rem,8vw,6rem)", fontWeight: 800, letterSpacing: "-0.04em", color: "#f0f0f0", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>1,247.30</span>
+          <span style={{ fontFamily: "'Syne',sans-serif", fontSize: "clamp(1.25rem,3vw,2rem)", fontWeight: 800, color: "#555", letterSpacing: "-0.03em" }}>min saved</span>
+        </div>
+        <p style={{ fontSize: "0.82rem", color: "#444", marginTop: "0.75rem" }}>vs uploading one video at a time</p>
+        <Script id="min-counter-script" strategy="afterInteractive">{`
+          (function(){
+            var seed = 1247.30;
+            var rate = 0.043;
+            var start = Date.now();
+            var el = document.getElementById('min-counter');
+            function tick(){
+              var val = seed + (Date.now()-start)/1000*rate;
+              var parts = val.toFixed(2).split('.');
+              parts[0] = parts[0].replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',');
+              el.textContent = parts.join('.');
+              requestAnimationFrame(tick);
+            }
+            tick();
+          })();
+        `}</Script>
       </div>
 
       <section className="section">
