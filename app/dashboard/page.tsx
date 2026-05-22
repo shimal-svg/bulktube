@@ -41,9 +41,11 @@ export default async function DashboardPage({
   );
 
   return (
-    <div className="min-h-screen bg-zinc-50">
-      <header className="border-b border-zinc-200 bg-white px-6 py-4 flex items-center justify-between">
-        <span className="font-bold text-zinc-900">drrop.io</span>
+    <div className="min-h-screen bg-drrop">
+      <header className="border-b border-drrop-border bg-surface px-6 py-4 flex items-center justify-between">
+        <span className="font-display font-bold text-lg tracking-[-0.03em] text-lime">
+          d<span className="text-drrop-orange">r</span><span className="text-drrop-purple">r</span>op.io
+        </span>
         <div className="flex items-center gap-3">
           {userData?.active_youtube_channel_thumbnail && (
             // eslint-disable-next-line @next/next/no-img-element
@@ -53,11 +55,11 @@ export default async function DashboardPage({
               className="h-7 w-7 rounded-full"
             />
           )}
-          <span className="text-sm text-zinc-600">
+          <span className="text-sm text-drrop-subtle">
             {userData?.active_youtube_channel_name}
           </span>
           <form action="/auth/signout" method="POST">
-            <button className="text-sm text-zinc-400 hover:text-zinc-700 transition">
+            <button className="text-sm text-drrop-muted hover:text-drrop-text transition">
               Sign out
             </button>
           </form>
@@ -66,30 +68,32 @@ export default async function DashboardPage({
 
       <main className="max-w-3xl mx-auto px-6 py-12">
         {paymentSuccess && (
-          <div className="mb-6 rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-800">
+          <div className="mb-6 rounded-lg bg-lime/10 border border-lime/30 px-4 py-3 text-sm text-lime">
             Payment successful — your credits have been added to your account.
           </div>
         )}
 
-        <h1 className="text-2xl font-bold text-zinc-900 mb-2">Dashboard</h1>
+        <h1 className="font-display font-bold text-2xl tracking-[-0.04em] text-drrop-text mb-2">
+          Dashboard
+        </h1>
 
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-6">
-            <p className="text-zinc-500 text-sm">
+            <p className="text-drrop-muted text-sm">
               Free uploads:{" "}
-              <strong className="text-zinc-900">
+              <strong className="text-drrop-text font-semibold">
                 {freeRemaining} remaining
               </strong>
             </p>
             {packCredits > 0 && (
-              <p className="text-zinc-500 text-sm">
+              <p className="text-drrop-muted text-sm">
                 Pack credits:{" "}
-                <strong className="text-zinc-900">{packCredits} remaining</strong>
+                <strong className="text-drrop-text font-semibold">{packCredits} remaining</strong>
               </p>
             )}
             <Link
               href="/credits"
-              className="text-sm font-medium text-zinc-400 hover:text-zinc-700 transition"
+              className="text-sm font-medium text-drrop-muted hover:text-lime transition"
             >
               Buy credits →
             </Link>
@@ -99,7 +103,7 @@ export default async function DashboardPage({
               href={userData.google_sheets_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition"
+              className="text-sm font-medium text-lime hover:text-[#d9ff6a] transition"
             >
               View Sheet →
             </a>

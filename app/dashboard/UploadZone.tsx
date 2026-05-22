@@ -266,7 +266,6 @@ export default function UploadZone() {
         body: JSON.stringify({ uploadId, youtubeVideoId }),
       })
       if (!res.ok) {
-        // Video IS on YouTube — surface the ID so the user isn't left wondering
         patchItem(item.id, {
           uploadStatus: 'success',
           youtubeVideoId,
@@ -296,12 +295,9 @@ export default function UploadZone() {
   }
 
   async function startUpload() {
-    // Include previously failed items so clicking Upload again retries them
     const targets = items.filter(i => !i.loading && (i.uploadStatus === 'idle' || i.uploadStatus === 'failed'))
     if (!targets.length) return
 
-    // Clear error state on failed items immediately so the UI doesn't show
-    // stale error messages while the new attempt is in progress
     setItems(prev =>
       prev.map(i =>
         i.uploadStatus === 'failed'
@@ -319,7 +315,6 @@ export default function UploadZone() {
       return
     }
 
-    // Snapshot settings at click time
     const settings = { ...batchSettings }
     const queue = [...targets]
 
@@ -332,8 +327,6 @@ export default function UploadZone() {
 
     await Promise.all(Array.from({ length: Math.min(3, targets.length) }, worker))
 
-    // Refresh the server component so the free-uploads counter reflects
-    // any credits deducted during this batch
     router.refresh()
 
     setBatchUploading(false)
@@ -379,9 +372,9 @@ export default function UploadZone() {
         className={[
           'rounded-xl border-2 border-dashed p-12 text-center transition-colors',
           atLimit
-            ? 'cursor-not-allowed opacity-50 border-zinc-200 bg-white'
-            : 'cursor-pointer border-zinc-300 bg-white hover:border-zinc-400',
-          dragging && !atLimit ? 'border-zinc-500 bg-zinc-50' : '',
+            ? 'cursor-not-allowed opacity-50 border-drrop-border bg-surface'
+            : 'cursor-pointer border-drrop-border bg-surface hover:border-lime/50',
+          dragging && !atLimit ? 'border-lime bg-lime/5' : '',
         ].join(' ')}
       >
         <input
@@ -392,17 +385,17 @@ export default function UploadZone() {
           className="hidden"
           onChange={handleInputChange}
         />
-        <p className="text-zinc-400 text-sm">
+        <p className="text-drrop-muted text-sm">
           {atLimit
             ? 'Maximum 20 videos reached'
             : 'Drag & drop videos here, or click to select'}
         </p>
-        <p className="text-zinc-300 text-xs mt-1">{items.length} / 20 videos</p>
+        <p className="text-drrop-border text-xs mt-1">{items.length} / 20 videos</p>
       </div>
 
       {items.length > 0 && (
         <div className="space-y-4">
-          <h2 className="text-sm font-semibold text-zinc-700">
+          <h2 className="text-sm font-semibold text-drrop-subtle">
             Preview — edit titles before uploading
           </h2>
 
@@ -411,14 +404,14 @@ export default function UploadZone() {
             {items.map(item => (
               <li
                 key={item.id}
-                className="rounded-lg border border-zinc-200 bg-white px-4 py-3 space-y-2"
+                className="rounded-lg border border-drrop-border bg-surface px-4 py-3 space-y-2"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex-1 min-w-0">
                     {item.loading ? (
-                      <div className="h-4 w-56 animate-pulse rounded bg-zinc-100" />
+                      <div className="h-4 w-56 animate-pulse rounded bg-drrop-border" />
                     ) : item.uploadStatus === 'success' ? (
-                      <p className="text-sm font-medium text-zinc-800 truncate">
+                      <p className="text-sm font-medium text-drrop-text truncate">
                         {item.title}
                         {batchSettings.titleSuffix ? `_${batchSettings.titleSuffix}` : ''}
                       </p>
@@ -434,10 +427,10 @@ export default function UploadZone() {
                           )
                         }
                         disabled={item.uploadStatus === 'uploading'}
-                        className="w-full text-sm text-zinc-800 bg-transparent border-b border-transparent hover:border-zinc-300 focus:border-zinc-500 focus:outline-none py-0.5 disabled:opacity-60"
+                        className="w-full text-sm text-drrop-text bg-transparent border-b border-transparent hover:border-drrop-border focus:border-lime focus:outline-none py-0.5 disabled:opacity-60"
                       />
                     )}
-                    <p className="text-xs text-zinc-400 mt-0.5 truncate">
+                    <p className="text-xs text-drrop-muted mt-0.5 truncate">
                       {item.file.name}
                       {item.orientation ? ` · ${item.orientation}` : ''}
                       {item.duration != null ? ` · ${formatDuration(item.duration)}` : ''}
@@ -453,7 +446,7 @@ export default function UploadZone() {
                       href={item.youtubeUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="shrink-0 text-xs text-green-600 hover:underline"
+                      className="shrink-0 text-xs text-lime hover:underline"
                     >
                       ✓ View
                     </a>
@@ -461,7 +454,7 @@ export default function UploadZone() {
                   {item.uploadStatus === 'failed' && (
                     <button
                       onClick={() => retryItem(item)}
-                      className="shrink-0 text-xs font-medium text-red-500 hover:text-red-700 transition"
+                      className="shrink-0 text-xs font-medium text-red-400 hover:text-red-300 transition"
                     >
                       Retry
                     </button>
@@ -472,7 +465,7 @@ export default function UploadZone() {
                         setItems(prev => prev.filter(i => i.id !== item.id))
                       }
                       aria-label="Remove"
-                      className="shrink-0 text-zinc-300 hover:text-red-400 transition text-xs leading-none"
+                      className="shrink-0 text-drrop-border hover:text-red-400 transition text-xs leading-none"
                     >
                       ✕
                     </button>
@@ -481,9 +474,9 @@ export default function UploadZone() {
 
                 {/* Progress bar */}
                 {item.uploadStatus === 'uploading' && (
-                  <div className="w-full h-1.5 rounded-full bg-zinc-100 overflow-hidden">
+                  <div className="w-full h-1.5 rounded-full bg-drrop-border overflow-hidden">
                     <div
-                      className="h-full bg-zinc-900 rounded-full transition-all duration-150"
+                      className="h-full bg-lime rounded-full transition-all duration-150"
                       style={{ width: `${item.progress}%` }}
                     />
                   </div>
@@ -491,21 +484,21 @@ export default function UploadZone() {
 
                 {/* Error */}
                 {item.uploadError && (
-                  <p className="text-xs text-red-500">{item.uploadError}</p>
+                  <p className="text-xs text-red-400">{item.uploadError}</p>
                 )}
               </li>
             ))}
           </ul>
 
           {/* Batch settings */}
-          <div className="rounded-lg border border-zinc-200 bg-white px-4 py-4 space-y-3">
-            <p className="text-xs font-semibold text-zinc-500 uppercase tracking-wide">
+          <div className="rounded-lg border border-drrop-border bg-surface px-4 py-4 space-y-3">
+            <p className="text-xs font-semibold text-drrop-muted uppercase tracking-wide">
               Batch settings
             </p>
             <div className="flex flex-wrap gap-5">
               {/* Privacy */}
               <div className="space-y-1.5">
-                <p className="text-xs text-zinc-500">Privacy</p>
+                <p className="text-xs text-drrop-muted">Privacy</p>
                 <div className="flex gap-1">
                   {(['public', 'unlisted', 'private'] as Privacy[]).map(p => (
                     <button
@@ -514,8 +507,8 @@ export default function UploadZone() {
                       className={[
                         'px-2.5 py-1 text-xs rounded-md border transition capitalize',
                         batchSettings.privacy === p
-                          ? 'bg-zinc-900 text-white border-zinc-900'
-                          : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400',
+                          ? 'bg-lime text-drrop border-lime font-semibold'
+                          : 'bg-drrop text-drrop-subtle border-drrop-border hover:border-lime/50',
                       ].join(' ')}
                     >
                       {p}
@@ -526,7 +519,7 @@ export default function UploadZone() {
 
               {/* Made for kids */}
               <div className="space-y-1.5">
-                <p className="text-xs text-zinc-500">Made for kids</p>
+                <p className="text-xs text-drrop-muted">Made for kids</p>
                 <div className="flex gap-1">
                   {[false, true].map(val => (
                     <button
@@ -535,8 +528,8 @@ export default function UploadZone() {
                       className={[
                         'px-2.5 py-1 text-xs rounded-md border transition',
                         batchSettings.madeForKids === val
-                          ? 'bg-zinc-900 text-white border-zinc-900'
-                          : 'bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400',
+                          ? 'bg-lime text-drrop border-lime font-semibold'
+                          : 'bg-drrop text-drrop-subtle border-drrop-border hover:border-lime/50',
                       ].join(' ')}
                     >
                       {val ? 'Yes' : 'No'}
@@ -547,9 +540,9 @@ export default function UploadZone() {
 
               {/* Title suffix */}
               <div className="space-y-1.5 flex-1 min-w-48">
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-drrop-muted">
                   Title suffix{' '}
-                  <span className="text-zinc-300 font-normal">
+                  <span className="text-drrop-border font-normal">
                     appended to every title on upload
                   </span>
                 </p>
@@ -560,7 +553,7 @@ export default function UploadZone() {
                     setBatchSettings(s => ({ ...s, titleSuffix: e.target.value }))
                   }
                   placeholder="e.g. sponsored_may2026"
-                  className="w-full text-sm px-2.5 py-1 rounded-md border border-zinc-200 focus:border-zinc-500 focus:outline-none bg-white text-zinc-800 placeholder-zinc-300"
+                  className="w-full text-sm px-2.5 py-1 rounded-md border border-drrop-border focus:border-lime focus:outline-none bg-drrop text-drrop-text placeholder:text-drrop-muted"
                 />
               </div>
             </div>
@@ -568,7 +561,7 @@ export default function UploadZone() {
 
           {/* Session error */}
           {sessionError && (
-            <p className="text-xs text-red-500">{sessionError}</p>
+            <p className="text-xs text-red-400">{sessionError}</p>
           )}
 
           {/* Upload button — only when there are idle videos */}
@@ -576,7 +569,7 @@ export default function UploadZone() {
             <button
               onClick={startUpload}
               disabled={anyLoading || batchUploading}
-              className="w-full rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full rounded-full bg-lime text-drrop px-4 py-2.5 text-sm font-bold tracking-[-0.02em] hover:bg-[#d9ff6a] transition disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {anyLoading
                 ? 'Reading metadata…'

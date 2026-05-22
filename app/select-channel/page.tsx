@@ -47,13 +47,13 @@ export default function SelectChannelPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-drrop flex items-center justify-center px-4">
       <div className="w-full max-w-lg">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-zinc-900">
+          <h1 className="font-display font-bold text-2xl tracking-[-0.04em] text-drrop-text">
             Select your YouTube channel
           </h1>
-          <p className="mt-2 text-sm text-zinc-500">
+          <p className="mt-2 text-sm text-drrop-muted">
             Choose the channel you want to upload videos to.
           </p>
         </div>
@@ -65,7 +65,7 @@ export default function SelectChannelPage() {
         )}
 
         {error && (
-          <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+          <div className="rounded-lg bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-400">
             {error}
             {error.includes("sign in") && (
               <a href="/login" className="ml-2 underline font-medium">
@@ -76,18 +76,18 @@ export default function SelectChannelPage() {
         )}
 
         {!loading && !error && channels.length === 0 && (
-          <div className="rounded-lg bg-yellow-50 border border-yellow-200 px-4 py-3 text-sm text-yellow-800">
+          <div className="rounded-lg bg-drrop-orange/10 border border-drrop-orange/30 px-4 py-3 text-sm text-drrop-orange">
             No YouTube channels found on this Google account.
           </div>
         )}
 
-        <ul className="space-y-3">
+        <ul className="space-y-3 mt-4">
           {channels.map((channel) => (
             <li key={channel.id}>
               <button
                 onClick={() => selectChannel(channel)}
                 disabled={saving !== null}
-                className="flex w-full items-center gap-4 rounded-xl border border-zinc-200 bg-white px-5 py-4 text-left shadow-sm transition hover:border-zinc-400 hover:shadow disabled:opacity-60"
+                className="flex w-full items-center gap-4 rounded-xl border border-drrop-border bg-surface px-5 py-4 text-left transition hover:border-lime disabled:opacity-60"
               >
                 {channel.thumbnail ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -97,13 +97,13 @@ export default function SelectChannelPage() {
                     className="h-12 w-12 rounded-full object-cover flex-shrink-0"
                   />
                 ) : (
-                  <div className="h-12 w-12 rounded-full bg-zinc-200 flex-shrink-0" />
+                  <div className="h-12 w-12 rounded-full bg-drrop-border flex-shrink-0" />
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-zinc-900 truncate">
+                  <p className="font-semibold text-drrop-text truncate">
                     {channel.title}
                   </p>
-                  <p className="text-xs text-zinc-500 mt-0.5">
+                  <p className="text-xs text-drrop-muted mt-0.5">
                     {Number(channel.subscriberCount).toLocaleString()} subscribers
                     &nbsp;·&nbsp;
                     {Number(channel.videoCount).toLocaleString()} videos
@@ -113,7 +113,7 @@ export default function SelectChannelPage() {
                   <Spinner />
                 ) : (
                   <svg
-                    className="text-zinc-300 flex-shrink-0"
+                    className="text-drrop-muted flex-shrink-0"
                     width="20"
                     height="20"
                     viewBox="0 0 20 20"
@@ -138,7 +138,7 @@ export default function SelectChannelPage() {
 function Spinner() {
   return (
     <svg
-      className="animate-spin h-5 w-5 text-zinc-400"
+      className="animate-spin h-5 w-5 text-drrop-subtle"
       viewBox="0 0 24 24"
       fill="none"
     >

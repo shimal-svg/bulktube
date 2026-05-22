@@ -34,13 +34,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-50">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-10 shadow-sm border border-zinc-100">
+    <div className="min-h-screen flex items-center justify-center bg-drrop px-4">
+      <div className="w-full max-w-sm rounded-2xl bg-surface border border-drrop-border p-10">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
-            drrop.io
+          <h1 className="font-display font-bold text-2xl tracking-[-0.04em] text-drrop-text">
+            d<span className="text-drrop-orange">r</span><span className="text-drrop-purple">r</span>op.io
           </h1>
-          <p className="mt-2 text-sm text-zinc-500">
+          <p className="mt-2 text-sm text-drrop-muted">
             Upload videos to YouTube in bulk
           </p>
         </div>
@@ -48,17 +48,17 @@ export default function LoginPage() {
         <button
           onClick={signInWithGoogle}
           disabled={loading}
-          className="flex w-full items-center justify-center gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-medium text-zinc-700 shadow-sm transition hover:bg-zinc-50 disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-3 rounded-lg border border-drrop-border bg-drrop px-4 py-3 text-sm font-medium text-drrop-text transition hover:border-lime hover:text-lime disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <GoogleIcon />
           {loading ? "Redirecting…" : "Continue with Google"}
         </button>
 
         {error && (
-          <p className="mt-4 text-center text-xs text-red-500">{error}</p>
+          <p className="mt-4 text-center text-xs text-red-400">{error}</p>
         )}
 
-        <p className="mt-6 text-center text-xs text-zinc-400">
+        <p className="mt-6 text-center text-xs text-drrop-muted">
           By signing in you grant drrop.io permission to upload videos on your
           behalf.
         </p>
