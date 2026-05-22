@@ -23,8 +23,7 @@ export default async function DashboardPage({
       .single(),
     supabase
       .from("credit_packs")
-      .select("credits_remaining")
-      .gt("expires_at", new Date().toISOString()),
+      .select("credits_remaining"),
     searchParams,
   ]);
 

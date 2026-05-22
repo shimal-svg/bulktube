@@ -49,7 +49,6 @@ export async function POST(request: Request) {
       .select("id")
       .eq("user_id", userId)
       .gt("credits_remaining", 0)
-      .gt("expires_at", new Date().toISOString())
       .limit(1)
       .maybeSingle();
 

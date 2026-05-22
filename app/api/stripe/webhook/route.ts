@@ -63,7 +63,6 @@ export async function POST(request: Request) {
       credits_total:     credits,
       credits_remaining: credits,
       stripe_payment_id: stripePaymentId,
-      expires_at:        new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
     });
 
     if (error) {

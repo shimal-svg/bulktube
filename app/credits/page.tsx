@@ -37,7 +37,7 @@ export default async function CreditsPage() {
           Purchase a credit pack
         </h1>
         <p className="text-drrop-muted text-sm text-center mb-12">
-          Each credit lets you upload one video. Credits are valid for 1 year from purchase.
+          Each credit lets you upload one video. Credits never expire.
         </p>
 
         <div className="grid grid-cols-3 gap-6">
