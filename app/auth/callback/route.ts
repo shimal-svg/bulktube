@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createServerClient } from "@supabase/ssr";
 import { saveGoogleTokens } from "@/lib/google/token";
 import { NextResponse } from "next/server";
 
@@ -8,14 +8,43 @@ export async function GET(request: Request) {
   const error = searchParams.get("error");
 
   if (error) {
-    return NextResponse.redirect(`${origin}/login?error=${error}`);
+    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error)}`);
   }
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login?error=no_code`);
   }
 
-  const supabase = await createClient();
+  // Collect cookies written during exchangeCodeForSession so they can be
+  // applied to the final redirect response. The shared createClient() from
+  // lib/supabase/server writes to next/headers cookies(), which is a
+  // different object from NextResponse — cookies set there never reach the
+  // browser when we return NextResponse.redirect().
+  const pendingCookies: Array<{ name: string; value: string; options: Record<string, unknown> }> = [];
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.headers
+            .get("cookie")
+            ?.split(";")
+            .map((c) => {
+              const [name, ...rest] = c.trim().split("=");
+              return { name: name.trim(), value: rest.join("=").trim() };
+            }) ?? [];
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            pendingCookies.push({ name, value, options: options ?? {} })
+          );
+        },
+      },
+    }
+  );
+
   const { data: exchangeData, error: exchangeError } =
     await supabase.auth.exchangeCodeForSession(code);
 
@@ -23,9 +52,8 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login?error=exchange_failed`);
   }
 
-  // provider_token is only present immediately after exchange — save it now
-  // before any subsequent session refresh can drop it from the cookie.
   const oauthSession = exchangeData?.session;
+
   if (oauthSession?.provider_token && oauthSession.user?.id) {
     await saveGoogleTokens(
       oauthSession.user.id,
@@ -35,24 +63,28 @@ export async function GET(request: Request) {
     );
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Determine destination before building the response
+  let destination = `${origin}/select-channel`;
 
-  if (!user) {
-    return NextResponse.redirect(`${origin}/login?error=no_user`);
+  if (oauthSession?.user?.id) {
+    const { data: userData } = await supabase
+      .from("users")
+      .select("active_youtube_channel_id")
+      .eq("id", oauthSession.user.id)
+      .single();
+
+    if (userData?.active_youtube_channel_id) {
+      destination = `${origin}/dashboard`;
+    }
   }
 
-  // Check if user has already selected a channel
-  const { data: userData } = await supabase
-    .from("users")
-    .select("active_youtube_channel_id")
-    .eq("id", user.id)
-    .single();
+  const response = NextResponse.redirect(destination);
 
-  if (userData?.active_youtube_channel_id) {
-    return NextResponse.redirect(`${origin}/dashboard`);
-  }
+  // Apply all session cookies onto the redirect response so the browser
+  // receives them and subsequent requests are authenticated.
+  pendingCookies.forEach(({ name, value, options }) =>
+    response.cookies.set(name, value, options as Parameters<typeof response.cookies.set>[2])
+  );
 
-  return NextResponse.redirect(`${origin}/select-channel`);
+  return response;
 }
