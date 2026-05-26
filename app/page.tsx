@@ -11,8 +11,6 @@ export default function LandingPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');
-
         :root {
           --lime: #c8f55a;
           --orange: #ff6b35;
@@ -30,7 +28,7 @@ export default function LandingPage() {
         body {
           background: var(--bg);
           color: var(--text);
-          font-family: 'Inter', sans-serif;
+          font-family: var(--font-inter), sans-serif;
           font-size: 16px;
           line-height: 1.6;
           overflow-x: hidden;
@@ -50,7 +48,7 @@ export default function LandingPage() {
         }
 
         .nav-logo {
-          font-family: 'Syne', sans-serif;
+          font-family: var(--font-syne), sans-serif;
           font-size: 1.5rem;
           font-weight: 800;
           color: var(--lime);
@@ -116,7 +114,7 @@ export default function LandingPage() {
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
 
         h1 {
-          font-family: 'Syne', sans-serif;
+          font-family: var(--font-syne), sans-serif;
           font-size: clamp(3rem, 8vw, 6rem);
           font-weight: 800;
           line-height: 1.0;
@@ -198,7 +196,7 @@ export default function LandingPage() {
         .naming-chunk {
           padding: 0.3rem 0.6rem;
           border-radius: 6px;
-          font-family: 'Inter', monospace;
+          font-family: var(--font-inter), monospace;
           font-weight: 600;
           font-size: 0.78rem;
           letter-spacing: 0.01em;
@@ -265,7 +263,7 @@ export default function LandingPage() {
 
         .stat-item { text-align: center; }
         .stat-num {
-          font-family: 'Syne', sans-serif;
+          font-family: var(--font-syne), sans-serif;
           font-size: 2rem;
           font-weight: 800;
           color: var(--lime);
@@ -290,7 +288,7 @@ export default function LandingPage() {
         }
 
         .section-title {
-          font-family: 'Syne', sans-serif;
+          font-family: var(--font-syne), sans-serif;
           font-size: clamp(2rem, 4vw, 3rem);
           font-weight: 800;
           letter-spacing: -0.04em;
@@ -323,7 +321,7 @@ export default function LandingPage() {
         .step-card:hover { border-color: rgba(200,245,90,0.3); transform: translateY(-3px); }
 
         .step-num {
-          font-family: 'Syne', sans-serif;
+          font-family: var(--font-syne), sans-serif;
           font-size: 3.5rem;
           font-weight: 800;
           color: rgba(200,245,90,0.1);
@@ -346,7 +344,7 @@ export default function LandingPage() {
         .icon-blue { background: rgba(56,189,248,0.12); color: #38bdf8; }
 
         .step-card h3 {
-          font-family: 'Syne', sans-serif;
+          font-family: var(--font-syne), sans-serif;
           font-size: 1.1rem;
           font-weight: 700;
           margin-bottom: 0.5rem;
@@ -381,7 +379,7 @@ export default function LandingPage() {
         }
 
         .feature-item h3 {
-          font-family: 'Syne', sans-serif;
+          font-family: var(--font-syne), sans-serif;
           font-size: 1rem;
           font-weight: 700;
           margin-bottom: 0.5rem;
@@ -423,7 +421,7 @@ export default function LandingPage() {
         }
 
         .price-name { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 1rem; font-weight: 600; }
-        .price-amount { font-family: 'Syne', sans-serif; font-size: 3rem; font-weight: 800; letter-spacing: -0.04em; line-height: 1; margin-bottom: 0.25rem; }
+        .price-amount { font-family: var(--font-syne), sans-serif; font-size: 3rem; font-weight: 800; letter-spacing: -0.04em; line-height: 1; margin-bottom: 0.25rem; }
         .price-card.featured .price-amount { color: var(--lime); }
         .price-per { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.5rem; }
         .price-credits { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
@@ -452,7 +450,7 @@ export default function LandingPage() {
           flex-wrap: wrap;
           margin-top: 2rem;
         }
-        .free-banner h3 { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.25rem; }
+        .free-banner h3 { font-family: var(--font-syne), sans-serif; font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.25rem; }
         .free-banner p { font-size: 0.9rem; color: #888; }
 
         .cta-section {
@@ -473,7 +471,7 @@ export default function LandingPage() {
           pointer-events: none;
         }
         .cta-section h2 {
-          font-family: 'Syne', sans-serif;
+          font-family: var(--font-syne), sans-serif;
           font-size: clamp(2.5rem, 5vw, 4rem);
           font-weight: 800;
           letter-spacing: -0.05em;
@@ -491,7 +489,7 @@ export default function LandingPage() {
           flex-wrap: wrap;
           gap: 1rem;
         }
-        .footer-logo { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 800; letter-spacing: -0.03em; }
+        .footer-logo { font-family: var(--font-syne), sans-serif; font-size: 1.1rem; font-weight: 800; letter-spacing: -0.03em; }
         .footer-logo .rr-first { color: var(--orange); }
         .footer-logo .rr-second { color: #a78bfa; }
         .footer-logo .rest { color: var(--lime); }
@@ -594,8 +592,8 @@ export default function LandingPage() {
       <div style={{ textAlign: "center", padding: "4rem 2rem", borderBottom: "1px solid #242424", background: "#0d0d0d" }}>
         <p style={{ fontSize: "0.75rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#c8f55a", fontWeight: 600, marginBottom: "1.25rem" }}>Time saved across all uploads</p>
         <div style={{ display: "inline-flex", alignItems: "baseline", gap: "0.5rem" }}>
-          <span id="min-counter" style={{ fontFamily: "'Syne',sans-serif", fontSize: "clamp(3.5rem,8vw,6rem)", fontWeight: 800, letterSpacing: "-0.04em", color: "#f0f0f0", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>1,247.30</span>
-          <span style={{ fontFamily: "'Syne',sans-serif", fontSize: "clamp(1.25rem,3vw,2rem)", fontWeight: 800, color: "#555", letterSpacing: "-0.03em" }}>min saved</span>
+          <span id="min-counter" style={{ fontFamily: "var(--font-syne)", fontSize: "clamp(3.5rem,8vw,6rem)", fontWeight: 800, letterSpacing: "-0.04em", color: "#f0f0f0", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>1,247.30</span>
+          <span style={{ fontFamily: "var(--font-syne)", fontSize: "clamp(1.25rem,3vw,2rem)", fontWeight: 800, color: "#555", letterSpacing: "-0.03em" }}>min saved</span>
         </div>
         <p style={{ fontSize: "0.82rem", color: "#444", marginTop: "0.75rem" }}>vs uploading one video at a time</p>
         <Script id="min-counter-script" strategy="afterInteractive">{`
