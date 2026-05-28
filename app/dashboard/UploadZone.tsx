@@ -859,11 +859,8 @@ export default function UploadZone({
                 </>
               )}
             </div>
-            <div className="space-y-1.5">
-              <p className="text-xs text-drrop-muted">
-                Title suffix{' '}
-                <span className="text-drrop-muted font-normal">appended on upload</span>
-              </p>
+            <p className="text-sm text-drrop-muted">Filename: DSCF6710.MOV</p>
+            <div className="mt-2">
               <input
                 type="text"
                 value={batchSettings.titleSuffix}
