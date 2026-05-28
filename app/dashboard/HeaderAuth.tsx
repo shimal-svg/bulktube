@@ -40,18 +40,24 @@ export default function HeaderAuth({
   const [oneTapVisible, setOneTapVisible] = useState(false)
 
   async function handleCredential(response: { credential: string }) {
-    console.log('[OneTap] credential received, signing in...')
+    console.log('[OneTap] ✅ CALLBACK FIRED')
+    console.log('[OneTap] credential present:', !!response?.credential, '| length:', response?.credential?.length)
     setOneTapVisible(false)
     const supabase = createClient()
-    const { error } = await supabase.auth.signInWithIdToken({
-      provider: 'google',
-      token: response.credential,
-    })
-    if (error) {
-      console.error('[OneTap] signInWithIdToken error:', error.message)
-    } else {
-      console.log('[OneTap] sign-in success, refreshing...')
-      router.refresh()
+    try {
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token: response.credential,
+      })
+      console.log('[OneTap] signInWithIdToken result — session:', !!data?.session, '| user:', data?.user?.email, '| error:', error?.message ?? 'none')
+      if (error) {
+        console.error('[OneTap] ❌ sign-in failed:', error)
+      } else {
+        console.log('[OneTap] ✅ sign-in success, calling router.refresh()')
+        router.refresh()
+      }
+    } catch (err) {
+      console.error('[OneTap] ❌ unexpected exception:', err)
     }
   }
 
@@ -71,12 +77,13 @@ export default function HeaderAuth({
       })
       console.log('[OneTap] prompt()')
       window.google!.accounts.id.prompt((n) => {
-        console.log('[OneTap] notification — display:', n.isDisplayMoment(), '| displayed:', n.isDisplayMoment() && n.isDisplayed(), '| skipped:', n.isSkippedMoment(), '| dismissed:', n.isDismissedMoment())
+        const type = n.isDisplayMoment() ? 'display' : n.isSkippedMoment() ? 'skipped' : n.isDismissedMoment() ? 'dismissed' : 'unknown'
+        const detail = n.isDisplayMoment() ? `displayed=${n.isDisplayed()}` : ''
+        console.log(`[OneTap] prompt notification: ${type} ${detail}`)
         if (n.isDisplayMoment()) {
           setOneTapVisible(n.isDisplayed())
         } else if (n.isDismissedMoment()) {
           setOneTapVisible(false)
-          window.google?.accounts?.id?.cancel()
         }
       })
     }
