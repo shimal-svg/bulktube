@@ -1014,7 +1014,7 @@ export default function UploadZone({
                 <button
                   onClick={() => isAuthenticated ? setConnectModal('ads') : connectService('ads')}
                   className="w-full rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
-                  style={{ background: 'linear-gradient(135deg, #4285F4, #34A853, #FBBC05, #EA4335)' }}
+                  style={{ background: 'linear-gradient(135deg, #4285F4, #34A853, #FBBC05)' }}
                 >
                   Connect Google Ads
                 </button>
@@ -1048,7 +1048,7 @@ export default function UploadZone({
             <button
               onClick={() => { setUploadGateModal(false); connectService('ads') }}
               className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
-              style={{ background: 'linear-gradient(135deg, #4285F4, #34A853, #FBBC05, #EA4335)' }}
+              style={{ background: 'linear-gradient(135deg, #4285F4, #34A853, #FBBC05)' }}
             >
               Connect Ads
             </button>
