@@ -860,8 +860,8 @@ export default function UploadZone({
                 type="text"
                 value={batchSettings.titleSuffix}
                 onChange={e => setBatchSettings(s => ({ ...s, titleSuffix: e.target.value }))}
-                placeholder="appended on upload"
-                className="w-full text-sm px-2.5 py-1.5 rounded-md border border-drrop-border focus:border-lime focus:outline-none bg-drrop text-drrop-text placeholder:text-drrop-muted"
+                placeholder="Input a custom append here e.g. summer sale"
+                className="w-full text-xs px-2.5 py-1.5 rounded-md border border-drrop-border focus:border-lime focus:outline-none bg-drrop text-drrop-text placeholder:text-drrop-muted"
               />
             </div>
           </div>
