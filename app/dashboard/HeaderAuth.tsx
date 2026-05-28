@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -38,50 +38,68 @@ export default function HeaderAuth({
 }) {
   const router = useRouter()
   const [oneTapVisible, setOneTapVisible] = useState(false)
-  const initialized = useRef(false)
 
   async function handleCredential(response: { credential: string }) {
+    console.log('[OneTap] credential received, signing in...')
     setOneTapVisible(false)
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithIdToken({
       provider: 'google',
       token: response.credential,
     })
-    if (!error) router.refresh()
+    if (error) {
+      console.error('[OneTap] signInWithIdToken error:', error.message)
+    } else {
+      console.log('[OneTap] sign-in success, refreshing...')
+      router.refresh()
+    }
   }
 
   useEffect(() => {
-    if (email || initialized.current) return
-    initialized.current = true
+    if (email) return
+
+    let cancelled = false
+    let timerId: ReturnType<typeof setInterval> | null = null
 
     function init() {
+      if (cancelled) return
+      console.log('[OneTap] initialize, client_id:', process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID)
       window.google!.accounts.id.initialize({
         client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
         auto_select: true,
         callback: handleCredential,
       })
+      console.log('[OneTap] prompt()')
       window.google!.accounts.id.prompt((n) => {
+        console.log('[OneTap] notification — display:', n.isDisplayMoment(), '| displayed:', n.isDisplayMoment() && n.isDisplayed(), '| skipped:', n.isSkippedMoment(), '| dismissed:', n.isDismissedMoment())
         if (n.isDisplayMoment()) {
           setOneTapVisible(n.isDisplayed())
         } else if (n.isDismissedMoment()) {
           setOneTapVisible(false)
-          window.google!.accounts.id.cancel()
+          window.google?.accounts?.id?.cancel()
         }
       })
     }
 
     if (window.google?.accounts?.id) {
+      console.log('[OneTap] GSI already loaded')
       init()
-      return
+    } else {
+      console.log('[OneTap] waiting for GSI script...')
+      timerId = setInterval(() => {
+        if (window.google?.accounts?.id) {
+          clearInterval(timerId!)
+          timerId = null
+          console.log('[OneTap] GSI loaded (polled)')
+          init()
+        }
+      }, 50)
     }
 
-    const timer = setInterval(() => {
-      if (window.google?.accounts?.id) {
-        clearInterval(timer)
-        init()
-      }
-    }, 50)
-    return () => clearInterval(timer)
+    return () => {
+      cancelled = true
+      if (timerId !== null) clearInterval(timerId)
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email])
 
