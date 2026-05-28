@@ -128,11 +128,13 @@ function Toggle({
   onChange,
   size = 'md',
   id,
+  className: extraClassName,
 }: {
   checked: boolean
   onChange: (v: boolean) => void
   size?: 'sm' | 'md'
   id?: string
+  className?: string
 }) {
   return (
     <button
@@ -145,6 +147,7 @@ function Toggle({
         'relative inline-flex shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-lime',
         size === 'md' ? 'h-5 w-9' : 'h-4 w-7',
         checked ? 'bg-lime' : 'bg-drrop-border',
+        extraClassName ?? '',
       ].join(' ')}
     >
       <span
@@ -1009,7 +1012,7 @@ export default function UploadZone({
                   <label htmlFor="toggle-yt" className="text-sm text-drrop-muted cursor-pointer select-none">
                     Include in this upload
                   </label>
-                  <Toggle checked={uploadToYouTube} onChange={handleToggleYouTube} id="toggle-yt" />
+                  <Toggle checked={uploadToYouTube} onChange={handleToggleYouTube} id="toggle-yt" className="ring-2 ring-[#c8f55a] ring-offset-1 ring-offset-surface" />
                 </div>
               </div>
             ) : (
@@ -1086,7 +1089,7 @@ export default function UploadZone({
                       <label htmlFor="toggle-ads" className="text-sm text-drrop-muted cursor-pointer select-none">
                         Include in this upload
                       </label>
-                      <Toggle checked={uploadToGoogleAds} onChange={handleToggleGoogleAds} id="toggle-ads" />
+                      <Toggle checked={uploadToGoogleAds} onChange={handleToggleGoogleAds} id="toggle-ads" className="ring-2 ring-[#c8f55a] ring-offset-1 ring-offset-surface" />
                     </div>
                   </>
                 )}
