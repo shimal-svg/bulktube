@@ -8,21 +8,11 @@ export default function HeaderAuth({
   avatar?: string | null
 }) {
   function openLoginPopup() {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-    if (!clientId) return
-
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: `${window.location.origin}/auth/callback/login`,
-      response_type: 'code',
-      scope: 'openid email profile',
-      access_type: 'offline',
-      prompt: 'consent',
-      state: 'login',
-    })
-
-    const url = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
-    window.open(url, '_blank', 'width=560,height=660,popup=yes,left=200,top=100')
+    window.open(
+      '/auth/callback/initiate?service=login',
+      '_blank',
+      'width=560,height=660,popup=yes,left=200,top=100'
+    )
   }
 
   if (email) {

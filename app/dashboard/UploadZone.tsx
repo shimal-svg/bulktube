@@ -336,37 +336,13 @@ export default function UploadZone({
 
   // ── popup OAuth ─────────────────────────────────────────────────────────
   function openAuthPopup(service: 'login' | 'youtube' | 'google_ads' | 'sheets') {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-    if (!clientId) return
-
-    const callbackPath: Record<string, string> = {
-      login: 'login',
-      youtube: 'youtube',
-      google_ads: 'google-ads',
-      sheets: 'sheets',
-    }
-    // Each service requests ONLY its own scopes — no bundling.
-    // openid + email are included so the callback can identify the user via id_token.
-    const scopeMap: Record<string, string> = {
-      login: 'openid email profile',
-      youtube: 'openid email https://www.googleapis.com/auth/youtube',
-      google_ads: 'openid email https://www.googleapis.com/auth/adwords',
-      sheets: 'openid email https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file',
-    }
-
-    const redirectUri = `${window.location.origin}/auth/callback/${callbackPath[service]}`
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      response_type: 'code',
-      scope: scopeMap[service],
-      access_type: 'offline',
-      prompt: 'consent',
-      state: service,
-    })
-
-    const url = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
-    window.open(url, '_blank', 'width=560,height=660,popup=yes,left=200,top=100')
+    // /auth/callback/initiate is public (matches /auth/callback in proxy PUBLIC_PATHS).
+    // It builds the Google OAuth URL server-side and redirects the popup there.
+    window.open(
+      `/auth/callback/initiate?service=${service}`,
+      '_blank',
+      'width=560,height=660,popup=yes,left=200,top=100'
+    )
   }
 
   // ── postMessage listener ────────────────────────────────────────────────
