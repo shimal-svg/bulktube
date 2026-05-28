@@ -1156,44 +1156,68 @@ export default function UploadZone({
 
       {/* ── Upload gate modal ─────────────────────────────────────────── */}
       <Modal open={uploadGateModal} onClose={() => setUploadGateModal(false)}>
-        <h2 className="font-display font-bold text-lg tracking-[-0.03em] text-drrop-text mb-2">
+        <h2 className="font-display font-bold text-lg tracking-[-0.03em] text-drrop-text mb-5">
           Connect a destination to upload
         </h2>
-        {!isAuthenticated && (
-          <p className="text-sm text-drrop-muted mb-4">
-            Sign in first, then connect a destination to start uploading.
-          </p>
-        )}
-        <div className="space-y-2 mt-4">
-          {!isAuthenticated && (
+
+        {/* Step indicator + buttons */}
+        <div className="flex gap-4">
+          {/* Left: vertical step line */}
+          <div className="flex flex-col items-center" style={{ minWidth: 24 }}>
+            {/* Step 1 circle */}
+            <div className="flex items-center justify-center rounded-full text-drrop text-xs font-bold shrink-0" style={{ width: 22, height: 22, background: '#c8f55a' }}>1</div>
+            {/* Line down to step 2 */}
+            <div className="flex-1 w-px" style={{ background: '#c8f55a', minHeight: 12 }} />
+            {/* Step 2 circle (shared by YouTube + Ads) */}
+            <div className="flex items-center justify-center rounded-full text-drrop text-xs font-bold shrink-0" style={{ width: 22, height: 22, background: '#c8f55a' }}>2</div>
+            {/* Line down to step 3 */}
+            <div className="flex-1 w-px" style={{ background: '#c8f55a', minHeight: 12 }} />
+            {/* Step 3 circle */}
+            <div className="flex items-center justify-center rounded-full text-drrop text-xs font-bold shrink-0" style={{ width: 22, height: 22, background: '#c8f55a' }}>3</div>
+          </div>
+
+          {/* Right: buttons */}
+          <div className="flex-1 flex flex-col gap-2">
+            {/* Step 1 */}
+            {!isAuthenticated ? (
+              <button
+                onClick={() => { setUploadGateModal(false); openAuthPopup('login') }}
+                className="w-full rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+                style={{ backgroundColor: '#4285F4' }}
+              >
+                Sign in with Google
+              </button>
+            ) : (
+              <div className="w-full rounded-full px-4 py-2.5 text-sm font-bold text-center" style={{ backgroundColor: '#4285F4', color: 'white', opacity: 0.4 }}>
+                Signed in ✓
+              </div>
+            )}
+
+            {/* Step 2 — two parallel options */}
             <button
-              onClick={() => { setUploadGateModal(false); openAuthPopup('login') }}
-              className="w-full rounded-full px-4 py-2.5 text-sm font-bold text-drrop-text border border-drrop-border hover:border-lime transition"
+              onClick={() => { setUploadGateModal(false); openAuthPopup('youtube') }}
+              className="w-full rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+              style={{ backgroundColor: '#FF0000' }}
             >
-              Sign in with Google
+              Connect YouTube
             </button>
-          )}
-          <button
-            onClick={() => { setUploadGateModal(false); openAuthPopup('youtube') }}
-            className="w-full rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
-            style={{ backgroundColor: '#FF0000' }}
-          >
-            Connect YouTube
-          </button>
-          <button
-            onClick={() => { setUploadGateModal(false); openAuthPopup('google_ads') }}
-            className="w-full rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg, #4285F4, #34A853, #FBBC05)' }}
-          >
-            Connect Google Ads
-          </button>
-          <button
-            onClick={() => { setUploadGateModal(false); openAuthPopup('sheets') }}
-            className="w-full rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
-            style={{ backgroundColor: '#0F9D58' }}
-          >
-            Connect Google Sheets
-          </button>
+            <button
+              onClick={() => { setUploadGateModal(false); openAuthPopup('google_ads') }}
+              className="w-full rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+              style={{ background: 'linear-gradient(135deg, #4285F4, #34A853, #FBBC05)' }}
+            >
+              Connect Google Ads
+            </button>
+
+            {/* Step 3 */}
+            <button
+              onClick={() => { setUploadGateModal(false); openAuthPopup('sheets') }}
+              className="w-full rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+              style={{ backgroundColor: '#0F9D58' }}
+            >
+              Connect Google Sheets
+            </button>
+          </div>
         </div>
       </Modal>
     </>
