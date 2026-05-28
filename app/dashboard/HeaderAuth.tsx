@@ -184,7 +184,7 @@ export default function HeaderAuth({
               onClick={handleSignOut}
               className="w-full text-left px-4 py-2.5 text-sm text-drrop-text hover:bg-drrop transition"
             >
-              Sign out of everything
+              Sign out
             </button>
           </div>
         )}

@@ -456,6 +456,30 @@ export default function UploadZone({
     saveAdsAccountToDb(account)
   }
 
+  // ── destination disconnect ──────────────────────────────────────────────
+  async function handleDisconnect(service: 'youtube' | 'google_ads' | 'sheets') {
+    await fetch('/api/user/disconnect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ service }),
+    })
+    if (service === 'youtube') {
+      setUploadToYouTube(false)
+      localStorage.removeItem('drrop_yt_enabled')
+    }
+    if (service === 'google_ads') {
+      setSelectedAdsAccount(null)
+      setAdsOAuthDone(false)
+      setUploadToGoogleAds(false)
+      ;['drrop_ads_customer_id', 'drrop_ads_customer_name', 'drrop_ads_enabled', 'drrop_ads_oauth_done'].forEach(k => localStorage.removeItem(k))
+    }
+    if (service === 'sheets') {
+      setSheetsOAuthDone(false)
+      localStorage.removeItem('drrop_sheets_oauth_done')
+    }
+    router.refresh()
+  }
+
   // ── computed ────────────────────────────────────────────────────────────
   const youtubeConnected = !!channelName
   const adsConnected = !!selectedAdsAccount
@@ -991,7 +1015,11 @@ export default function UploadZone({
                 <Tooltip text="Upload directly to your YouTube channel. Videos will appear publicly or privately based on your batch settings." />
               </div>
               {youtubeConnected && (
-                <span className="text-xs text-lime font-medium">Connected</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-lime font-medium">Connected</span>
+                  <span className="text-xs text-drrop-muted">|</span>
+                  <button onClick={() => handleDisconnect('youtube')} className="text-xs text-drrop-muted hover:text-red-400 transition">Sign out</button>
+                </div>
               )}
             </div>
 
@@ -1038,7 +1066,11 @@ export default function UploadZone({
                 <Tooltip text="Upload directly to Asset Studio — no YouTube channel required. Videos will appear in your selected Google Ads account." />
               </div>
               {adsConnected && (
-                <span className="text-xs text-lime font-medium">Connected</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-lime font-medium">Connected</span>
+                  <span className="text-xs text-drrop-muted">|</span>
+                  <button onClick={() => handleDisconnect('google_ads')} className="text-xs text-drrop-muted hover:text-red-400 transition">Sign out</button>
+                </div>
               )}
             </div>
 
@@ -1117,7 +1149,11 @@ export default function UploadZone({
                 <Tooltip text="After each upload, a row is appended to your Google Sheet with the video title, ID, URL, and metadata. The sheet is created automatically on first upload." />
               </div>
               {sheetsConnected && (
-                <span className="text-xs text-lime font-medium">Connected</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-lime font-medium">Connected</span>
+                  <span className="text-xs text-drrop-muted">|</span>
+                  <button onClick={() => handleDisconnect('sheets')} className="text-xs text-drrop-muted hover:text-red-400 transition">Sign out</button>
+                </div>
               )}
             </div>
 
