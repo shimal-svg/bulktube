@@ -15,6 +15,7 @@ export default function HeaderAuth({
       provider: 'google',
       options: {
         redirectTo: `${window.location.origin}/auth/callback/login`,
+        scopes: 'email profile',
         queryParams: { access_type: 'offline', prompt: 'consent' },
         skipBrowserRedirect: true,
       },

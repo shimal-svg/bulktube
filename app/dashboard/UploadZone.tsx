@@ -345,17 +345,18 @@ export default function UploadZone({
       sheets: 'sheets',
     }
     const scopeMap: Record<string, string> = {
-      youtube: 'https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/drive.file',
+      login: 'email profile',
+      youtube: 'https://www.googleapis.com/auth/youtube',
       google_ads: 'https://www.googleapis.com/auth/adwords',
       sheets: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file',
     }
 
     const options: Parameters<typeof supabase.auth.signInWithOAuth>[0]['options'] = {
       redirectTo: `${window.location.origin}/auth/callback/${callbackPath[service]}`,
-      queryParams: { access_type: 'offline', prompt: 'consent', include_granted_scopes: 'true' },
+      queryParams: { access_type: 'offline', prompt: 'consent' },
+      scopes: scopeMap[service],
       skipBrowserRedirect: true,
     }
-    if (scopeMap[service]) options.scopes = scopeMap[service]
 
     const { data } = await supabase.auth.signInWithOAuth({ provider: 'google', options })
     if (data?.url) {
