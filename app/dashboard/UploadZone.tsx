@@ -1177,16 +1177,7 @@ export default function UploadZone({
                 )}
               </div>
             ) : (
-              <div className="space-y-3">
-                <p className="text-sm text-drrop-muted">No Google Sheets connected.</p>
-                <button
-                  onClick={() => openAuthPopup('sheets')}
-                  className="w-full rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
-                  style={{ backgroundColor: '#0F9D58' }}
-                >
-                  Connect Google Sheets
-                </button>
-              </div>
+              <p className="text-sm text-drrop-muted">Included with YouTube connection.</p>
             )}
           </div>
 
@@ -1255,20 +1246,6 @@ export default function UploadZone({
             </button>
           </div>
 
-          {/* Connector 2b → 3 */}
-          <StepConnector />
-
-          {/* Step 3 */}
-          <div className="flex items-center gap-4">
-            <StepBadge label="Step 3" />
-            <button
-              onClick={() => { setUploadGateModal(false); openAuthPopup('sheets') }}
-              className="flex-1 rounded-lg px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
-              style={{ backgroundColor: '#0F9D58' }}
-            >
-              Connect Google Sheets
-            </button>
-          </div>
         </div>
       </Modal>
     </>
