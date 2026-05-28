@@ -4,12 +4,62 @@ import { NextResponse } from "next/server";
 
 const ADS_VERSION = "v20";
 
-// Format raw customer ID digits as XXX-XXX-XXXX
 function formatCustomerId(id: string): string {
   const d = id.replace(/\D/g, "");
   return d.length === 10
     ? `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`
     : id;
+}
+
+async function fetchCustomerName(
+  id: string,
+  token: string,
+  devToken: string
+): Promise<string | null> {
+  // Attempt 1: GAQL search with login-customer-id set to the customer's own ID
+  try {
+    const res = await fetch(
+      `https://googleads.googleapis.com/${ADS_VERSION}/customers/${id}/googleAds:search`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "developer-token": devToken,
+          "Content-Type": "application/json",
+          "login-customer-id": id,
+        },
+        body: JSON.stringify({
+          query: "SELECT customer.id, customer.descriptive_name FROM customer LIMIT 1",
+        }),
+      }
+    );
+    if (res.ok) {
+      const data = await res.json();
+      const name: string | undefined = data.results?.[0]?.customer?.descriptiveName;
+      if (name) return name;
+    }
+  } catch {}
+
+  // Attempt 2: REST GET /customers/{id}
+  try {
+    const res = await fetch(
+      `https://googleads.googleapis.com/${ADS_VERSION}/customers/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "developer-token": devToken,
+          "login-customer-id": id,
+        },
+      }
+    );
+    if (res.ok) {
+      const data = await res.json();
+      const name: string | undefined = data.descriptiveName;
+      if (name) return name;
+    }
+  } catch {}
+
+  return null;
 }
 
 export async function GET() {
@@ -33,7 +83,6 @@ export async function GET() {
       { status: 503 }
     );
 
-  // Step 1 — list accessible customer resource names
   const listRes = await fetch(
     `https://googleads.googleapis.com/${ADS_VERSION}/customers:listAccessibleCustomers`,
     {
@@ -64,34 +113,15 @@ export async function GET() {
     .map((r) => r.replace("customers/", ""))
     .slice(0, 50);
 
-  // Step 2 — fetch descriptive name for each customer via GAQL
   const customers = await Promise.all(
     customerIds.map(async (id) => {
-      try {
-        const res = await fetch(
-          `https://googleads.googleapis.com/${ADS_VERSION}/customers/${id}/googleAds:search`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "developer-token": devToken,
-              "Content-Type": "application/json",
-              "login-customer-id": id,
-            },
-            body: JSON.stringify({
-              query:
-                "SELECT customer.id, customer.descriptive_name FROM customer LIMIT 1",
-            }),
-          }
-        );
-        if (res.ok) {
-          const data = await res.json();
-          const name: string =
-            data.results?.[0]?.customer?.descriptiveName ?? `Account ${id}`;
-          return { id, name, formattedId: formatCustomerId(id) };
-        }
-      } catch {}
-      return { id, name: `Account ${id}`, formattedId: formatCustomerId(id) };
+      const formattedId = formatCustomerId(id);
+      const name = await fetchCustomerName(id, token, devToken);
+      return {
+        id,
+        name: name ?? formattedId,
+        formattedId,
+      };
     })
   );
 
