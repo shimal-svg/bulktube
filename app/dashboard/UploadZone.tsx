@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, DragEvent, ChangeEvent } from 'react'
+import { useState, useRef, useEffect, DragEvent, ChangeEvent, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 
 type Orientation = 'portrait' | 'landscape' | 'square'
@@ -160,9 +160,63 @@ function Toggle({
   )
 }
 
+// ─── Modal ─────────────────────────────────────────────────────────────────
+
+function Modal({
+  open,
+  onClose,
+  children,
+}: {
+  open: boolean
+  onClose: () => void
+  children: ReactNode
+}) {
+  if (!open) return null
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative z-10 w-full max-w-md rounded-2xl border border-drrop-border bg-surface p-6 shadow-2xl">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+// ─── Icons ──────────────────────────────────────────────────────────────────
+
+function YouTubeIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M21.8 8.001a2.75 2.75 0 0 0-1.935-1.947C18.22 5.6 12 5.6 12 5.6s-6.22 0-7.865.454A2.75 2.75 0 0 0 2.2 8.001 28.79 28.79 0 0 0 1.75 12a28.79 28.79 0 0 0 .45 3.999 2.75 2.75 0 0 0 1.935 1.947C5.78 18.4 12 18.4 12 18.4s6.22 0 7.865-.454a2.75 2.75 0 0 0 1.935-1.947A28.79 28.79 0 0 0 22.25 12a28.79 28.79 0 0 0-.45-3.999Z"
+        fill="#FF0000"
+      />
+      <path d="M10 15.2V8.8L15.6 12 10 15.2Z" fill="white" />
+    </svg>
+  )
+}
+
+function GoogleAdsIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <circle cx="6" cy="18" r="3" fill="#FBBC04" />
+      <circle cx="18" cy="18" r="3" fill="#34A853" />
+      <circle cx="12" cy="6" r="3" fill="#4285F4" />
+      <line x1="6" y1="18" x2="12" y2="6" stroke="#FBBC04" strokeWidth="2" />
+      <line x1="18" y1="18" x2="12" y2="6" stroke="#34A853" strokeWidth="2" />
+    </svg>
+  )
+}
+
 // ─── component ──────────────────────────────────────────────────────────────
 
-export default function UploadZone() {
+export default function UploadZone({
+  channelName,
+  channelThumbnail,
+}: {
+  channelName?: string | null
+  channelThumbnail?: string | null
+}) {
   // ── existing state ─────────────────────────────────────────────────────
   const [items, setItems] = useState<VideoItem[]>([])
   const [dragging, setDragging] = useState(false)
@@ -190,6 +244,14 @@ export default function UploadZone() {
   const [adsSearch, setAdsSearch] = useState('')
   const [adsDropdownOpen, setAdsDropdownOpen] = useState(false)
   const [selectedAdsAccount, setSelectedAdsAccount] = useState<AdsAccount | null>(null)
+
+  // ── modal state ─────────────────────────────────────────────────────────
+  const [connectModal, setConnectModal] = useState<'youtube' | 'ads' | null>(null)
+  const [uploadGateModal, setUploadGateModal] = useState(false)
+
+  // ── derived ─────────────────────────────────────────────────────────────
+  const youtubeConnected = !!channelName
+  const adsConnected = !!selectedAdsAccount
 
   // ── load persisted preferences on mount ────────────────────────────────
   useEffect(() => {
@@ -455,6 +517,11 @@ export default function UploadZone() {
     const targets = items.filter(i => !i.loading && (i.uploadStatus === 'idle' || i.uploadStatus === 'failed'))
     if (!targets.length) return
 
+    if (activeDestinations === 0) {
+      setUploadGateModal(true)
+      return
+    }
+
     setItems(prev =>
       prev.map(i =>
         i.uploadStatus === 'failed'
@@ -519,313 +586,228 @@ export default function UploadZone() {
   const hasIdle = idleItems.length > 0
 
   return (
-    <div className="space-y-4">
+    <>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
-      {/* ── Credit counter ─────────────────────────────────────────────── */}
-      {creditCount > 0 && (
-        <div className="flex items-center gap-3 rounded-lg bg-lime/10 border border-lime/20 px-4 py-2.5">
-          <span className="text-lime font-semibold text-sm">
-            Uploading {creditCount} Video{creditCount !== 1 ? 's' : ''}
-          </span>
-          <span className="text-drrop-muted text-xs">
-            {items.length} {items.length !== 1 ? 'videos' : 'video'} × {activeDestinations} destination{activeDestinations !== 1 ? 's' : ''}
-          </span>
-        </div>
-      )}
-
-      {/* ── Destination toggles ────────────────────────────────────────── */}
-      <div className="rounded-xl border border-drrop-border bg-surface px-4 py-3 space-y-3">
-        <p className="text-xs font-semibold text-drrop-muted uppercase tracking-wide">
-          Upload destinations
-        </p>
-
-        {/* YouTube */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Toggle checked={uploadToYouTube} onChange={handleToggleYouTube} id="toggle-yt" />
-            <label htmlFor="toggle-yt" className="text-sm font-medium text-drrop-text cursor-pointer select-none">
-              Upload to YouTube
-            </label>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-drrop-muted">Remember</span>
-            <Toggle size="sm" checked={rememberChannel} onChange={handleRememberChannel} id="remember-yt" />
-          </div>
-        </div>
-
-        {/* Google Ads */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Toggle checked={uploadToGoogleAds} onChange={handleToggleGoogleAds} id="toggle-ads" />
-              <label htmlFor="toggle-ads" className="text-sm font-medium text-drrop-text cursor-pointer select-none">
-                Upload to Google Ads
-              </label>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-drrop-muted">Remember</span>
-              <Toggle size="sm" checked={rememberAdsAccount} onChange={handleRememberAds} id="remember-ads" />
-            </div>
+        {/* ── LEFT — Video Import ─────────────────────────────────────── */}
+        <div className="space-y-4">
+          <div
+            onDrop={handleDrop}
+            onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+            onDragLeave={() => setDragging(false)}
+            onClick={() => !atLimit && inputRef.current?.click()}
+            className={[
+              'rounded-xl border-2 border-dashed p-8 text-center transition-colors',
+              atLimit
+                ? 'cursor-not-allowed opacity-50 border-drrop-border bg-surface'
+                : 'cursor-pointer border-drrop-border bg-surface hover:border-lime/50',
+              dragging && !atLimit ? 'border-lime bg-lime/5' : '',
+            ].join(' ')}
+          >
+            <input
+              ref={inputRef}
+              type="file"
+              accept="video/*"
+              multiple
+              className="hidden"
+              onChange={handleInputChange}
+            />
+            <p className="text-drrop-muted text-sm">
+              {atLimit
+                ? 'Maximum 20 videos reached'
+                : 'Drag & drop videos here, or click to select'}
+            </p>
+            <p className="text-drrop-border text-xs mt-1">{items.length} / 20 videos</p>
           </div>
 
-          {/* Account dropdown — visible when Google Ads toggle is ON */}
-          {uploadToGoogleAds && (
-            <div className="relative ml-0">
-              <input
-                type="text"
-                placeholder={
-                  selectedAdsAccount
-                    ? `${selectedAdsAccount.name} — ${selectedAdsAccount.formattedId}`
-                    : adsAccountsLoading
-                    ? 'Loading accounts…'
-                    : 'Search accounts…'
-                }
-                value={adsSearch}
-                onChange={(e) => { setAdsSearch(e.target.value); setAdsDropdownOpen(true) }}
-                onFocus={() => { setAdsDropdownOpen(true); if (adsAccounts.length === 0 && !adsAccountsLoading) fetchAdsAccounts() }}
-                onBlur={() => setTimeout(() => setAdsDropdownOpen(false), 150)}
-                disabled={adsAccountsLoading}
-                className="w-full text-sm px-3 py-2 rounded-lg border border-drrop-border bg-drrop text-drrop-text placeholder:text-drrop-muted focus:border-lime focus:outline-none disabled:opacity-50"
-              />
+          {items.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-drrop-subtle">
+                {items.length} video{items.length !== 1 ? 's' : ''} — edit titles before uploading
+              </p>
+              <ul className="space-y-2 max-h-[480px] overflow-y-auto pr-0.5">
+                {items.map(item => (
+                  <li
+                    key={item.id}
+                    className="rounded-lg border border-drrop-border bg-surface px-4 py-3 space-y-2"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 min-w-0">
+                        {item.loading ? (
+                          <div className="h-4 w-40 animate-pulse rounded bg-drrop-border" />
+                        ) : item.uploadStatus === 'success' ? (
+                          <p className="text-sm font-medium text-drrop-text truncate">
+                            {item.title}
+                            {batchSettings.titleSuffix ? `_${batchSettings.titleSuffix}` : ''}
+                          </p>
+                        ) : (
+                          <input
+                            type="text"
+                            value={item.title}
+                            onChange={e =>
+                              setItems(prev =>
+                                prev.map(i =>
+                                  i.id === item.id ? { ...i, title: e.target.value } : i
+                                )
+                              )
+                            }
+                            disabled={item.uploadStatus === 'uploading'}
+                            className="w-full text-sm text-drrop-text bg-transparent border-b border-transparent hover:border-drrop-border focus:border-lime focus:outline-none py-0.5 disabled:opacity-60"
+                          />
+                        )}
+                        <p className="text-xs text-drrop-muted mt-0.5 truncate">
+                          {item.file.name}
+                          {item.orientation ? ` · ${item.orientation}` : ''}
+                          {item.duration != null ? ` · ${formatDuration(item.duration)}` : ''}
+                          {batchSettings.titleSuffix && item.uploadStatus !== 'success'
+                            ? ` · +_${batchSettings.titleSuffix}`
+                            : ''}
+                        </p>
+                      </div>
 
-              {adsDropdownOpen && !adsAccountsLoading && (
-                <div className="absolute top-full mt-1 left-0 right-0 z-20 rounded-lg border border-drrop-border bg-surface shadow-xl max-h-56 overflow-y-auto">
-                  {adsAccountsError && (
-                    <p className="px-3 py-3 text-sm text-red-400">{adsAccountsError}</p>
-                  )}
-                  {!adsAccountsError && filteredAdsAccounts.length === 0 && (
-                    <p className="px-3 py-4 text-sm text-drrop-muted text-center">No accounts found</p>
-                  )}
-                  {!adsAccountsError && filteredAdsAccounts.map((account) => (
-                    <button
-                      key={account.id}
-                      onMouseDown={() => selectAdsAccount(account)}
-                      className="flex w-full items-center justify-between px-3 py-2.5 text-sm hover:bg-lime/5 transition text-left"
-                    >
-                      <span className="text-drrop-text truncate">{account.name}</span>
-                      <span className="text-drrop-muted text-xs ml-3 shrink-0">{account.formattedId}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
+                      {item.uploadStatus === 'success' && (
+                        <a
+                          href={item.youtubeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="shrink-0 text-xs text-lime hover:underline"
+                        >
+                          ✓ View
+                        </a>
+                      )}
+                      {item.uploadStatus === 'failed' && (
+                        <button
+                          onClick={() => retryItem(item)}
+                          className="shrink-0 text-xs font-medium text-red-400 hover:text-red-300 transition"
+                        >
+                          Retry
+                        </button>
+                      )}
+                      {item.uploadStatus === 'idle' && !item.loading && (
+                        <button
+                          onClick={() =>
+                            setItems(prev => prev.filter(i => i.id !== item.id))
+                          }
+                          aria-label="Remove"
+                          className="shrink-0 text-drrop-border hover:text-red-400 transition text-xs leading-none"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
 
-              {selectedAdsAccount && !adsDropdownOpen && (
-                <p className="mt-1.5 text-xs text-lime">
-                  ✓ {selectedAdsAccount.name} — {selectedAdsAccount.formattedId}
-                </p>
-              )}
+                    {item.uploadStatus === 'uploading' && (
+                      <div className="w-full h-1.5 rounded-full bg-drrop-border overflow-hidden">
+                        <div
+                          className="h-full bg-lime rounded-full transition-all duration-150"
+                          style={{ width: `${item.progress}%` }}
+                        />
+                      </div>
+                    )}
+
+                    {item.uploadError && (
+                      <p className="text-xs text-red-400">{item.uploadError}</p>
+                    )}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>
-      </div>
 
-      {/* ── Drop zone ──────────────────────────────────────────────────── */}
-      <div
-        onDrop={handleDrop}
-        onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
-        onDragLeave={() => setDragging(false)}
-        onClick={() => !atLimit && inputRef.current?.click()}
-        className={[
-          'rounded-xl border-2 border-dashed p-12 text-center transition-colors',
-          atLimit
-            ? 'cursor-not-allowed opacity-50 border-drrop-border bg-surface'
-            : 'cursor-pointer border-drrop-border bg-surface hover:border-lime/50',
-          dragging && !atLimit ? 'border-lime bg-lime/5' : '',
-        ].join(' ')}
-      >
-        <input
-          ref={inputRef}
-          type="file"
-          accept="video/*"
-          multiple
-          className="hidden"
-          onChange={handleInputChange}
-        />
-        <p className="text-drrop-muted text-sm">
-          {atLimit
-            ? 'Maximum 20 videos reached'
-            : 'Drag & drop videos here, or click to select'}
-        </p>
-        <p className="text-drrop-border text-xs mt-1">{items.length} / 20 videos</p>
-      </div>
-
-      {items.length > 0 && (
+        {/* ── MIDDLE — Batch Settings ─────────────────────────────────── */}
         <div className="space-y-4">
-          <h2 className="text-sm font-semibold text-drrop-subtle">
-            Preview — edit titles before uploading
-          </h2>
-
-          {/* Video list */}
-          <ul className="space-y-2">
-            {items.map(item => (
-              <li
-                key={item.id}
-                className="rounded-lg border border-drrop-border bg-surface px-4 py-3 space-y-2"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 min-w-0">
-                    {item.loading ? (
-                      <div className="h-4 w-56 animate-pulse rounded bg-drrop-border" />
-                    ) : item.uploadStatus === 'success' ? (
-                      <p className="text-sm font-medium text-drrop-text truncate">
-                        {item.title}
-                        {batchSettings.titleSuffix ? `_${batchSettings.titleSuffix}` : ''}
-                      </p>
-                    ) : (
-                      <input
-                        type="text"
-                        value={item.title}
-                        onChange={e =>
-                          setItems(prev =>
-                            prev.map(i =>
-                              i.id === item.id ? { ...i, title: e.target.value } : i
-                            )
-                          )
-                        }
-                        disabled={item.uploadStatus === 'uploading'}
-                        className="w-full text-sm text-drrop-text bg-transparent border-b border-transparent hover:border-drrop-border focus:border-lime focus:outline-none py-0.5 disabled:opacity-60"
-                      />
-                    )}
-                    <p className="text-xs text-drrop-muted mt-0.5 truncate">
-                      {item.file.name}
-                      {item.orientation ? ` · ${item.orientation}` : ''}
-                      {item.duration != null ? ` · ${formatDuration(item.duration)}` : ''}
-                      {batchSettings.titleSuffix && item.uploadStatus !== 'success'
-                        ? ` · +_${batchSettings.titleSuffix}`
-                        : ''}
-                    </p>
-                  </div>
-
-                  {/* Per-item action */}
-                  {item.uploadStatus === 'success' && (
-                    <a
-                      href={item.youtubeUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="shrink-0 text-xs text-lime hover:underline"
-                    >
-                      ✓ View
-                    </a>
-                  )}
-                  {item.uploadStatus === 'failed' && (
-                    <button
-                      onClick={() => retryItem(item)}
-                      className="shrink-0 text-xs font-medium text-red-400 hover:text-red-300 transition"
-                    >
-                      Retry
-                    </button>
-                  )}
-                  {item.uploadStatus === 'idle' && !item.loading && (
-                    <button
-                      onClick={() =>
-                        setItems(prev => prev.filter(i => i.id !== item.id))
-                      }
-                      aria-label="Remove"
-                      className="shrink-0 text-drrop-border hover:text-red-400 transition text-xs leading-none"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-
-                {/* Progress bar */}
-                {item.uploadStatus === 'uploading' && (
-                  <div className="w-full h-1.5 rounded-full bg-drrop-border overflow-hidden">
-                    <div
-                      className="h-full bg-lime rounded-full transition-all duration-150"
-                      style={{ width: `${item.progress}%` }}
-                    />
-                  </div>
-                )}
-
-                {/* Error */}
-                {item.uploadError && (
-                  <p className="text-xs text-red-400">{item.uploadError}</p>
-                )}
-              </li>
-            ))}
-          </ul>
-
-          {/* Batch settings */}
-          <div className="rounded-lg border border-drrop-border bg-surface px-4 py-4 space-y-3">
+          <div className="rounded-xl border border-drrop-border bg-surface px-5 py-5 space-y-4">
             <p className="text-xs font-semibold text-drrop-muted uppercase tracking-wide">
               Batch settings
             </p>
-            <div className="flex flex-wrap gap-5">
-              {/* Privacy */}
-              <div className="space-y-1.5">
-                <p className="text-xs text-drrop-muted">Privacy</p>
-                <div className="flex gap-1">
-                  {(['public', 'unlisted', 'private'] as Privacy[]).map(p => (
-                    <button
-                      key={p}
-                      onClick={() => setBatchSettings(s => ({ ...s, privacy: p }))}
-                      className={[
-                        'px-2.5 py-1 text-xs rounded-md border transition capitalize',
-                        batchSettings.privacy === p
-                          ? 'bg-lime text-drrop border-lime font-semibold'
-                          : 'bg-drrop text-drrop-subtle border-drrop-border hover:border-lime/50',
-                      ].join(' ')}
-                    >
-                      {p}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
-              {/* Made for kids */}
-              <div className="space-y-1.5">
-                <p className="text-xs text-drrop-muted">Made for kids</p>
-                <div className="flex gap-1">
-                  {[false, true].map(val => (
-                    <button
-                      key={String(val)}
-                      onClick={() => setBatchSettings(s => ({ ...s, madeForKids: val }))}
-                      className={[
-                        'px-2.5 py-1 text-xs rounded-md border transition',
-                        batchSettings.madeForKids === val
-                          ? 'bg-lime text-drrop border-lime font-semibold'
-                          : 'bg-drrop text-drrop-subtle border-drrop-border hover:border-lime/50',
-                      ].join(' ')}
-                    >
-                      {val ? 'Yes' : 'No'}
-                    </button>
-                  ))}
-                </div>
+            <div className="space-y-1.5">
+              <p className="text-xs text-drrop-muted">Privacy</p>
+              <div className="flex gap-1">
+                {(['public', 'unlisted', 'private'] as Privacy[]).map(p => (
+                  <button
+                    key={p}
+                    onClick={() => setBatchSettings(s => ({ ...s, privacy: p }))}
+                    className={[
+                      'px-2.5 py-1 text-xs rounded-md border transition capitalize',
+                      batchSettings.privacy === p
+                        ? 'bg-lime text-drrop border-lime font-semibold'
+                        : 'bg-drrop text-drrop-subtle border-drrop-border hover:border-lime/50',
+                    ].join(' ')}
+                  >
+                    {p}
+                  </button>
+                ))}
               </div>
+            </div>
 
-              {/* Title suffix */}
-              <div className="space-y-1.5 flex-1 min-w-48">
-                <p className="text-xs text-drrop-muted">
-                  Title suffix{' '}
-                  <span className="text-drrop-border font-normal">
-                    appended to every title on upload
-                  </span>
-                </p>
-                <input
-                  type="text"
-                  value={batchSettings.titleSuffix}
-                  onChange={e =>
-                    setBatchSettings(s => ({ ...s, titleSuffix: e.target.value }))
-                  }
-                  placeholder="e.g. sponsored_may2026"
-                  className="w-full text-sm px-2.5 py-1 rounded-md border border-drrop-border focus:border-lime focus:outline-none bg-drrop text-drrop-text placeholder:text-drrop-muted"
-                />
+            <div className="space-y-1.5">
+              <p className="text-xs text-drrop-muted">Made for kids</p>
+              <div className="flex gap-1">
+                {[false, true].map(val => (
+                  <button
+                    key={String(val)}
+                    onClick={() => setBatchSettings(s => ({ ...s, madeForKids: val }))}
+                    className={[
+                      'px-2.5 py-1 text-xs rounded-md border transition',
+                      batchSettings.madeForKids === val
+                        ? 'bg-lime text-drrop border-lime font-semibold'
+                        : 'bg-drrop text-drrop-subtle border-drrop-border hover:border-lime/50',
+                    ].join(' ')}
+                  >
+                    {val ? 'Yes' : 'No'}
+                  </button>
+                ))}
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <p className="text-xs text-drrop-muted">
+                Title suffix{' '}
+                <span className="text-drrop-border font-normal">appended on upload</span>
+              </p>
+              <input
+                type="text"
+                value={batchSettings.titleSuffix}
+                onChange={e =>
+                  setBatchSettings(s => ({ ...s, titleSuffix: e.target.value }))
+                }
+                placeholder="e.g. sponsored_may2026"
+                className="w-full text-sm px-2.5 py-1.5 rounded-md border border-drrop-border focus:border-lime focus:outline-none bg-drrop text-drrop-text placeholder:text-drrop-muted"
+              />
             </div>
           </div>
 
-          {/* Session error */}
+          {items.length > 0 && (
+            <div className="rounded-xl border border-drrop-border bg-surface px-5 py-4">
+              <p className="text-xs font-semibold text-drrop-muted uppercase tracking-wide mb-3">
+                Credits needed
+              </p>
+              {activeDestinations === 0 ? (
+                <p className="text-sm text-drrop-muted">Enable at least one destination →</p>
+              ) : (
+                <div className="space-y-1">
+                  <p className="text-2xl font-bold font-display text-lime tracking-[-0.04em]">
+                    {creditCount}
+                  </p>
+                  <p className="text-xs text-drrop-muted">
+                    {items.length} video{items.length !== 1 ? 's' : ''} × {activeDestinations} destination{activeDestinations !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {sessionError && (
             <p className="text-xs text-red-400">{sessionError}</p>
           )}
 
-          {/* Upload button — only when there are idle videos */}
           {hasIdle && (
             <button
               onClick={startUpload}
               disabled={anyLoading || batchUploading}
-              className="w-full rounded-full bg-lime text-drrop px-4 py-2.5 text-sm font-bold tracking-[-0.02em] hover:bg-[#d9ff6a] transition disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full rounded-full bg-lime text-drrop px-4 py-3 text-sm font-bold tracking-[-0.02em] hover:bg-[#d9ff6a] transition disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {anyLoading
                 ? 'Reading metadata…'
@@ -835,7 +817,185 @@ export default function UploadZone() {
             </button>
           )}
         </div>
-      )}
-    </div>
+
+        {/* ── RIGHT — Destinations ────────────────────────────────────── */}
+        <div className="space-y-4">
+
+          {/* YouTube card */}
+          <div className="rounded-xl border border-drrop-border bg-surface px-5 py-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <YouTubeIcon />
+                <span className="text-sm font-semibold text-drrop-text">YouTube</span>
+              </div>
+              {youtubeConnected && (
+                <span className="text-xs text-lime font-medium">Connected</span>
+              )}
+            </div>
+
+            {youtubeConnected ? (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  {channelThumbnail && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={channelThumbnail}
+                      alt={channelName ?? ''}
+                      className="h-8 w-8 rounded-full"
+                    />
+                  )}
+                  <p className="text-sm text-drrop-text font-medium truncate">{channelName}</p>
+                </div>
+                <div className="flex items-center justify-between">
+                  <label htmlFor="toggle-yt" className="text-sm text-drrop-muted cursor-pointer select-none">
+                    Include in this upload
+                  </label>
+                  <Toggle checked={uploadToYouTube} onChange={handleToggleYouTube} id="toggle-yt" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-drrop-muted">Remember preference</span>
+                  <Toggle size="sm" checked={rememberChannel} onChange={handleRememberChannel} id="remember-yt" />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-drrop-muted">No YouTube channel connected.</p>
+                <button
+                  onClick={() => setConnectModal('youtube')}
+                  className="w-full rounded-lg border border-drrop-border bg-drrop px-4 py-2 text-sm font-medium text-drrop-text hover:border-lime hover:text-lime transition"
+                >
+                  How to connect
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Google Ads card */}
+          <div className="rounded-xl border border-drrop-border bg-surface px-5 py-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <GoogleAdsIcon />
+                <span className="text-sm font-semibold text-drrop-text">Google Ads</span>
+              </div>
+              {adsConnected && (
+                <span className="text-xs text-lime font-medium">Connected</span>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder={
+                    selectedAdsAccount
+                      ? `${selectedAdsAccount.name} — ${selectedAdsAccount.formattedId}`
+                      : adsAccountsLoading
+                      ? 'Loading accounts…'
+                      : 'Search or select an account…'
+                  }
+                  value={adsSearch}
+                  onChange={(e) => { setAdsSearch(e.target.value); setAdsDropdownOpen(true) }}
+                  onFocus={() => { setAdsDropdownOpen(true); if (adsAccounts.length === 0 && !adsAccountsLoading) fetchAdsAccounts() }}
+                  onBlur={() => setTimeout(() => setAdsDropdownOpen(false), 150)}
+                  disabled={adsAccountsLoading}
+                  className="w-full text-sm px-3 py-2 rounded-lg border border-drrop-border bg-drrop text-drrop-text placeholder:text-drrop-muted focus:border-lime focus:outline-none disabled:opacity-50"
+                />
+
+                {adsDropdownOpen && !adsAccountsLoading && (
+                  <div className="absolute top-full mt-1 left-0 right-0 z-20 rounded-lg border border-drrop-border bg-surface shadow-xl max-h-56 overflow-y-auto">
+                    {adsAccountsError && (
+                      <p className="px-3 py-3 text-sm text-red-400">{adsAccountsError}</p>
+                    )}
+                    {!adsAccountsError && filteredAdsAccounts.length === 0 && (
+                      <p className="px-3 py-4 text-sm text-drrop-muted text-center">No accounts found</p>
+                    )}
+                    {!adsAccountsError && filteredAdsAccounts.map((account) => (
+                      <button
+                        key={account.id}
+                        onMouseDown={() => selectAdsAccount(account)}
+                        className="flex w-full items-center justify-between px-3 py-2.5 text-sm hover:bg-lime/5 transition text-left"
+                      >
+                        <span className="text-drrop-text truncate">{account.name}</span>
+                        <span className="text-drrop-muted text-xs ml-3 shrink-0">{account.formattedId}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {adsConnected ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="toggle-ads" className="text-sm text-drrop-muted cursor-pointer select-none">
+                      Include in this upload
+                    </label>
+                    <Toggle checked={uploadToGoogleAds} onChange={handleToggleGoogleAds} id="toggle-ads" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-drrop-muted">Remember preference</span>
+                    <Toggle size="sm" checked={rememberAdsAccount} onChange={handleRememberAds} id="remember-ads" />
+                  </div>
+                </>
+              ) : (
+                <button
+                  onClick={() => setConnectModal('ads')}
+                  className="w-full rounded-lg border border-drrop-border bg-drrop px-4 py-2 text-sm font-medium text-drrop-text hover:border-lime hover:text-lime transition"
+                >
+                  How to connect
+                </button>
+              )}
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ── Modals ─────────────────────────────────────────────────────── */}
+
+      <Modal open={uploadGateModal} onClose={() => setUploadGateModal(false)}>
+        <h2 className="font-display font-bold text-lg tracking-[-0.03em] text-drrop-text mb-2">
+          Enable a destination
+        </h2>
+        <p className="text-sm text-drrop-muted mb-5">
+          Enable at least one upload destination — YouTube or Google Ads — before starting your upload.
+        </p>
+        <button
+          onClick={() => setUploadGateModal(false)}
+          className="w-full rounded-full bg-lime text-drrop px-4 py-2.5 text-sm font-bold tracking-[-0.02em] hover:bg-[#d9ff6a] transition"
+        >
+          Got it
+        </button>
+      </Modal>
+
+      <Modal open={connectModal === 'youtube'} onClose={() => setConnectModal(null)}>
+        <h2 className="font-display font-bold text-lg tracking-[-0.03em] text-drrop-text mb-2">
+          Connect YouTube
+        </h2>
+        <p className="text-sm text-drrop-muted mb-5">
+          Your YouTube channel connects automatically when you sign in with Google. If your channel isn't showing, sign out and sign back in to re-authenticate.
+        </p>
+        <button
+          onClick={() => setConnectModal(null)}
+          className="w-full rounded-full bg-lime text-drrop px-4 py-2.5 text-sm font-bold tracking-[-0.02em] hover:bg-[#d9ff6a] transition"
+        >
+          OK
+        </button>
+      </Modal>
+
+      <Modal open={connectModal === 'ads'} onClose={() => setConnectModal(null)}>
+        <h2 className="font-display font-bold text-lg tracking-[-0.03em] text-drrop-text mb-2">
+          Connect Google Ads
+        </h2>
+        <p className="text-sm text-drrop-muted mb-5">
+          Click the account selector above to search for and select your Google Ads account. If no accounts appear, sign out and sign back in to grant Google Ads access.
+        </p>
+        <button
+          onClick={() => setConnectModal(null)}
+          className="w-full rounded-full bg-lime text-drrop px-4 py-2.5 text-sm font-bold tracking-[-0.02em] hover:bg-[#d9ff6a] transition"
+        >
+          OK
+        </button>
+      </Modal>
+    </>
   )
 }

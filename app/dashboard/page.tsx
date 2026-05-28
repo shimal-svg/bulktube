@@ -65,7 +65,7 @@ export default async function DashboardPage({
         </div>
       </header>
 
-      <main className="max-w-3xl mx-auto px-6 py-12">
+      <main className="max-w-[1400px] mx-auto px-6 py-10">
         {paymentSuccess && (
           <div className="mb-6 rounded-lg bg-lime/10 border border-lime/30 px-4 py-3 text-sm text-lime">
             Payment successful — your credits have been added to your account.
@@ -109,7 +109,10 @@ export default async function DashboardPage({
           )}
         </div>
 
-        <UploadZone />
+        <UploadZone
+          channelName={userData?.active_youtube_channel_name}
+          channelThumbnail={userData?.active_youtube_channel_thumbnail}
+        />
       </main>
     </div>
   );
