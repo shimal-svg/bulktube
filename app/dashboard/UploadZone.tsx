@@ -373,6 +373,10 @@ export default function UploadZone({
       if (e.origin !== window.location.origin) return
       if (e.data?.type !== 'oauth_complete') return
       const { service } = e.data as { service: string }
+      if (service === 'youtube') {
+        setSheetsOAuthDone(true)
+        localStorage.setItem('drrop_sheets_oauth_done', 'true')
+      }
       if (service === 'google_ads') {
         setAdsOAuthDone(true)
         localStorage.setItem('drrop_ads_oauth_done', 'true')

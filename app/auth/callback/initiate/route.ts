@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 
 const SCOPES: Record<string, string> = {
   login: "openid email profile",
-  youtube: "openid email https://www.googleapis.com/auth/youtube",
+  youtube: "openid email profile https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file",
   google_ads: "openid email https://www.googleapis.com/auth/adwords",
   sheets: "openid email https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file",
 }
