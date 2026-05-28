@@ -291,7 +291,7 @@ function StepCircle({ label }: { label: string }) {
   return (
     <div
       className="flex items-center justify-center rounded-full text-drrop font-bold shrink-0"
-      style={{ width: 24, height: 24, background: '#c8f55a', fontSize: 10 }}
+      style={{ width: 72, height: 72, background: '#c8f55a', fontSize: 30 }}
     >
       {label}
     </div>
@@ -301,8 +301,8 @@ function StepCircle({ label }: { label: string }) {
 function StepConnector() {
   return (
     <div className="flex gap-4">
-      <div className="flex justify-center" style={{ width: 24 }}>
-        <div className="w-px" style={{ height: 10, background: '#c8f55a' }} />
+      <div className="flex justify-center" style={{ width: 72 }}>
+        <div className="w-px" style={{ height: 14, background: '#c8f55a' }} />
       </div>
       <div className="flex-1" />
     </div>
@@ -1221,10 +1221,10 @@ export default function UploadZone({
 
           {/* Connector 2a → 2b with "or" */}
           <div className="flex gap-4">
-            <div className="flex flex-col items-center" style={{ width: 24 }}>
-              <div className="w-px" style={{ height: 6, background: '#c8f55a' }} />
+            <div className="flex flex-col items-center" style={{ width: 72 }}>
+              <div className="w-px" style={{ height: 8, background: '#c8f55a' }} />
               <span className="text-xs text-drrop-muted leading-none">or</span>
-              <div className="w-px" style={{ height: 6, background: '#c8f55a' }} />
+              <div className="w-px" style={{ height: 8, background: '#c8f55a' }} />
             </div>
             <div className="flex-1" />
           </div>
