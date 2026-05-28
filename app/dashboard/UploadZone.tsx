@@ -285,6 +285,30 @@ function ColoredTitle({ item, suffix }: { item: VideoItem; suffix: string }) {
   )
 }
 
+// ─── Modal step helpers ──────────────────────────────────────────────────────
+
+function StepCircle({ label }: { label: string }) {
+  return (
+    <div
+      className="flex items-center justify-center rounded-full text-drrop font-bold shrink-0"
+      style={{ width: 24, height: 24, background: '#c8f55a', fontSize: 10 }}
+    >
+      {label}
+    </div>
+  )
+}
+
+function StepConnector() {
+  return (
+    <div className="flex gap-4">
+      <div className="flex justify-center" style={{ width: 24 }}>
+        <div className="w-px" style={{ height: 10, background: '#c8f55a' }} />
+      </div>
+      <div className="flex-1" />
+    </div>
+  )
+}
+
 // ─── component ──────────────────────────────────────────────────────────────
 
 export default function UploadZone({
@@ -1160,59 +1184,72 @@ export default function UploadZone({
           Connect a destination to upload
         </h2>
 
-        {/* Step indicator + buttons */}
-        <div className="flex gap-4">
-          {/* Left: vertical step line */}
-          <div className="flex flex-col items-center" style={{ minWidth: 24 }}>
-            {/* Step 1 circle */}
-            <div className="flex items-center justify-center rounded-full text-drrop text-xs font-bold shrink-0" style={{ width: 22, height: 22, background: '#c8f55a' }}>1</div>
-            {/* Line down to step 2 */}
-            <div className="flex-1 w-px" style={{ background: '#c8f55a', minHeight: 12 }} />
-            {/* Step 2 circle (shared by YouTube + Ads) */}
-            <div className="flex items-center justify-center rounded-full text-drrop text-xs font-bold shrink-0" style={{ width: 22, height: 22, background: '#c8f55a' }}>2</div>
-            {/* Line down to step 3 */}
-            <div className="flex-1 w-px" style={{ background: '#c8f55a', minHeight: 12 }} />
-            {/* Step 3 circle */}
-            <div className="flex items-center justify-center rounded-full text-drrop text-xs font-bold shrink-0" style={{ width: 22, height: 22, background: '#c8f55a' }}>3</div>
-          </div>
-
-          {/* Right: buttons */}
-          <div className="flex-1 flex flex-col gap-2">
-            {/* Step 1 */}
+        {/* Steps — one row per step, line segments between them */}
+        <div>
+          {/* Step 1 */}
+          <div className="flex items-center gap-4">
+            <StepCircle label="1" />
             {!isAuthenticated ? (
               <button
                 onClick={() => { setUploadGateModal(false); openAuthPopup('login') }}
-                className="w-full rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+                className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
                 style={{ backgroundColor: '#4285F4' }}
               >
                 Sign in with Google
               </button>
             ) : (
-              <div className="w-full rounded-full px-4 py-2.5 text-sm font-bold text-center" style={{ backgroundColor: '#4285F4', color: 'white', opacity: 0.4 }}>
+              <div className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold text-center text-white" style={{ backgroundColor: '#4285F4', opacity: 0.4 }}>
                 Signed in ✓
               </div>
             )}
+          </div>
 
-            {/* Step 2 — two parallel options */}
+          {/* Connector 1 → 2a */}
+          <StepConnector />
+
+          {/* Step 2a */}
+          <div className="flex items-center gap-4">
+            <StepCircle label="2a" />
             <button
               onClick={() => { setUploadGateModal(false); openAuthPopup('youtube') }}
-              className="w-full rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+              className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
               style={{ backgroundColor: '#FF0000' }}
             >
               Connect YouTube
             </button>
+          </div>
+
+          {/* Connector 2a → 2b with "or" */}
+          <div className="flex gap-4">
+            <div className="flex flex-col items-center" style={{ width: 24 }}>
+              <div className="w-px" style={{ height: 6, background: '#c8f55a' }} />
+              <span className="text-xs text-drrop-muted leading-none">or</span>
+              <div className="w-px" style={{ height: 6, background: '#c8f55a' }} />
+            </div>
+            <div className="flex-1" />
+          </div>
+
+          {/* Step 2b */}
+          <div className="flex items-center gap-4">
+            <StepCircle label="2b" />
             <button
               onClick={() => { setUploadGateModal(false); openAuthPopup('google_ads') }}
-              className="w-full rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+              className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
               style={{ background: 'linear-gradient(135deg, #4285F4, #34A853, #FBBC05)' }}
             >
               Connect Google Ads
             </button>
+          </div>
 
-            {/* Step 3 */}
+          {/* Connector 2b → 3 */}
+          <StepConnector />
+
+          {/* Step 3 */}
+          <div className="flex items-center gap-4">
+            <StepCircle label="3" />
             <button
               onClick={() => { setUploadGateModal(false); openAuthPopup('sheets') }}
-              className="w-full rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+              className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
               style={{ backgroundColor: '#0F9D58' }}
             >
               Connect Google Sheets
