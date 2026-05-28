@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import UploadZone from "./UploadZone";
+import HeaderAuth from "./HeaderAuth";
 
 export default async function DashboardPage({
   searchParams,
@@ -48,34 +49,16 @@ export default async function DashboardPage({
     (userData?.free_uploads_limit ?? 3) - (userData?.free_uploads_used ?? 0)
   );
 
+  const userEmail = userData?.email ?? user?.email ?? null;
+  const userAvatar = (user?.user_metadata?.avatar_url as string | undefined) ?? null;
+
   return (
     <div className="min-h-screen bg-drrop">
       <header className="border-b border-drrop-border bg-surface px-6 py-4 flex items-center justify-between">
         <span className="font-display font-bold text-lg tracking-[-0.03em] text-lime">
           d<span className="text-drrop-orange">r</span><span className="text-drrop-purple">r</span>op.io
         </span>
-        <div className="flex items-center gap-3">
-          {userData?.active_youtube_channel_thumbnail && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={userData.active_youtube_channel_thumbnail}
-              alt={userData.active_youtube_channel_name ?? ""}
-              className="h-7 w-7 rounded-full"
-            />
-          )}
-          {userData?.active_youtube_channel_name && (
-            <span className="text-sm text-drrop-subtle">
-              {userData.active_youtube_channel_name}
-            </span>
-          )}
-          {user && (
-            <form action="/auth/signout" method="POST">
-              <button className="text-sm text-drrop-muted hover:text-drrop-text transition">
-                Sign out
-              </button>
-            </form>
-          )}
-        </div>
+        <HeaderAuth email={userEmail} avatar={userAvatar} />
       </header>
 
       <main className="max-w-[1400px] mx-auto px-6 py-10">
@@ -130,6 +113,7 @@ export default async function DashboardPage({
           isAuthenticated={!!user}
           channelName={userData?.active_youtube_channel_name}
           channelThumbnail={userData?.active_youtube_channel_thumbnail}
+          sheetsUrl={userData?.google_sheets_url}
         />
       </main>
     </div>
