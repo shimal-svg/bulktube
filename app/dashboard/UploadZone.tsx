@@ -186,12 +186,19 @@ function Modal({
 // ─── Tooltip ────────────────────────────────────────────────────────────────
 
 function Tooltip({ text }: { text: string }) {
+  const [visible, setVisible] = useState(false)
   return (
-    <span className="relative group cursor-help inline-flex">
-      <span className="text-drrop-border text-xs select-none leading-none">ⓘ</span>
-      <span className="pointer-events-none absolute bottom-full right-0 mb-2 w-64 rounded-lg border border-drrop-border bg-[#111111] px-3 py-2.5 text-xs text-drrop-muted shadow-2xl z-30 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity">
-        {text}
-      </span>
+    <span
+      className="relative inline-flex cursor-help"
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+    >
+      <span className="text-drrop-muted text-xs select-none leading-none">ⓘ</span>
+      {visible && (
+        <span className="pointer-events-none absolute bottom-full right-0 mb-2 w-64 rounded-lg border border-drrop-border bg-[#111111] px-3 py-2.5 text-xs text-drrop-muted shadow-2xl z-30 leading-relaxed">
+          {text}
+        </span>
+      )}
     </span>
   )
 }
@@ -219,6 +226,52 @@ function GoogleAdsIcon() {
       <line x1="6" y1="18" x2="12" y2="6" stroke="#FBBC04" strokeWidth="2" />
       <line x1="18" y1="18" x2="12" y2="6" stroke="#34A853" strokeWidth="2" />
     </svg>
+  )
+}
+
+// ─── ColoredTitle ────────────────────────────────────────────────────────────
+
+function ColoredTitle({ item, suffix }: { item: VideoItem; suffix: string }) {
+  if (!item.orientation || item.duration == null) {
+    return (
+      <>
+        <span className="text-drrop-text">{item.title}</span>
+        {suffix && <><span className="text-drrop-border">_</span><span className="text-white">{suffix}</span></>}
+      </>
+    )
+  }
+
+  const parts = item.title.split('_')
+  if (parts.length < 4) {
+    return (
+      <>
+        <span style={{ color: '#c8f55a' }}>{item.title}</span>
+        {suffix && <><span className="text-drrop-border">_</span><span className="text-white">{suffix}</span></>}
+      </>
+    )
+  }
+
+  const dateStr = parts[parts.length - 1]
+  const durStr = parts[parts.length - 2]
+  const orientStr = parts[parts.length - 3]
+  const fileStr = parts.slice(0, parts.length - 3).join('_')
+
+  return (
+    <>
+      <span style={{ color: '#c8f55a' }}>{fileStr}</span>
+      <span className="text-drrop-border">_</span>
+      <span style={{ color: '#ff6b35' }}>{orientStr}</span>
+      <span className="text-drrop-border">_</span>
+      <span style={{ color: '#a78bfa' }}>{durStr}</span>
+      <span className="text-drrop-border">_</span>
+      <span style={{ color: '#38bdf8' }}>{dateStr}</span>
+      {suffix && (
+        <>
+          <span className="text-drrop-border">_</span>
+          <span className="text-white">{suffix}</span>
+        </>
+      )}
+    </>
   )
 }
 
@@ -264,6 +317,7 @@ export default function UploadZone({
   // ── modal state ─────────────────────────────────────────────────────────
   const [connectModal, setConnectModal] = useState<'youtube' | 'ads' | null>(null)
   const [uploadGateModal, setUploadGateModal] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   // ── OAuth connect ───────────────────────────────────────────────────────
   async function connectService(service: 'youtube' | 'ads') {
@@ -628,7 +682,7 @@ export default function UploadZone({
 
         {/* ── LEFT — Video Import ─────────────────────────────────────── */}
         <div className="space-y-4">
-          <h2 className="font-display font-bold text-lg tracking-[-0.03em]">
+          <h2 className="font-display font-bold text-xl tracking-[-0.03em]">
             <span className="text-lime">d</span>
             <span className="text-drrop-orange">r</span>
             <span className="text-drrop-purple">r</span>
@@ -678,15 +732,15 @@ export default function UploadZone({
                       <div className="flex-1 min-w-0">
                         {item.loading ? (
                           <div className="h-4 w-40 animate-pulse rounded bg-drrop-border" />
-                        ) : item.uploadStatus === 'success' ? (
-                          <p className="text-sm font-medium text-drrop-text truncate">
-                            {item.title}
-                            {batchSettings.titleSuffix ? `_${batchSettings.titleSuffix}` : ''}
+                        ) : item.uploadStatus === 'uploading' || item.uploadStatus === 'success' ? (
+                          <p className="text-sm font-medium truncate">
+                            <ColoredTitle item={item} suffix={batchSettings.titleSuffix} />
                           </p>
-                        ) : (
+                        ) : editingId === item.id ? (
                           <input
                             type="text"
                             value={item.title}
+                            autoFocus
                             onChange={e =>
                               setItems(prev =>
                                 prev.map(i =>
@@ -694,9 +748,20 @@ export default function UploadZone({
                                 )
                               )
                             }
-                            disabled={item.uploadStatus === 'uploading'}
-                            className="w-full text-sm text-drrop-text bg-transparent border-b border-transparent hover:border-drrop-border focus:border-lime focus:outline-none py-0.5 disabled:opacity-60"
+                            onBlur={() => setEditingId(null)}
+                            onKeyDown={e => { if (e.key === 'Enter') setEditingId(null) }}
+                            className="w-full text-sm text-drrop-text bg-transparent border-b border-lime focus:outline-none py-0.5"
                           />
+                        ) : (
+                          <div
+                            className="cursor-text"
+                            onClick={() => setEditingId(item.id)}
+                            title="Click to edit title"
+                          >
+                            <p className="text-sm font-medium truncate">
+                              <ColoredTitle item={item} suffix={batchSettings.titleSuffix} />
+                            </p>
+                          </div>
                         )}
                         <p className="text-xs text-drrop-muted mt-0.5 truncate">
                           {item.file.name}
@@ -760,28 +825,56 @@ export default function UploadZone({
 
         {/* ── MIDDLE — Batch Settings ─────────────────────────────────── */}
         <div className="space-y-4">
-          <h2 className="font-display font-bold text-lg tracking-[-0.03em] text-lime">
+          <h2 className="font-display font-bold text-xl tracking-[-0.03em] text-lime">
             batch settings
           </h2>
-          {/* Naming convention pills */}
-          <div className="rounded-xl border border-drrop-border bg-surface px-5 py-4">
-            <p className="text-xs font-semibold text-drrop-muted uppercase tracking-wide mb-3">
+          {/* Naming convention pills + suffix */}
+          <div className="rounded-xl border border-drrop-border bg-surface px-5 py-4 space-y-4">
+            <p className="text-xs font-semibold text-drrop-muted uppercase tracking-wide">
               Auto-generated title
             </p>
-            <div className="flex flex-wrap items-center gap-1 mb-2.5">
-              <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(200,245,90,0.12)', color: '#c8f55a' }}>SummerCampaign_v3</span>
-              <span className="text-drrop-border text-xs">_</span>
-              <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(255,107,53,0.12)', color: '#ff6b35' }}>portrait</span>
-              <span className="text-drrop-border text-xs">_</span>
-              <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(167,139,250,0.12)', color: '#a78bfa' }}>0m30s</span>
-              <span className="text-drrop-border text-xs">_</span>
-              <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(56,189,248,0.12)', color: '#38bdf8' }}>2025-06-01</span>
+            <div className="flex flex-wrap items-end gap-x-1.5 gap-y-3">
+              <div className="flex flex-col items-start gap-1.5">
+                <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(200,245,90,0.08)', color: '#c8f55a' }}>filename</span>
+                <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(200,245,90,0.12)', color: '#c8f55a' }}>SummerCampaign_v3</span>
+              </div>
+              <span className="text-drrop-border text-xs pb-[3px]">_</span>
+              <div className="flex flex-col items-start gap-1.5">
+                <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(255,107,53,0.08)', color: '#ff6b35' }}>orientation</span>
+                <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(255,107,53,0.12)', color: '#ff6b35' }}>portrait</span>
+              </div>
+              <span className="text-drrop-border text-xs pb-[3px]">_</span>
+              <div className="flex flex-col items-start gap-1.5">
+                <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(167,139,250,0.08)', color: '#a78bfa' }}>duration</span>
+                <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(167,139,250,0.12)', color: '#a78bfa' }}>0m30s</span>
+              </div>
+              <span className="text-drrop-border text-xs pb-[3px]">_</span>
+              <div className="flex flex-col items-start gap-1.5">
+                <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(56,189,248,0.08)', color: '#38bdf8' }}>upload date</span>
+                <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(56,189,248,0.12)', color: '#38bdf8' }}>2025-06-01</span>
+              </div>
+              {batchSettings.titleSuffix && (
+                <>
+                  <span className="text-drrop-border text-xs pb-[3px]">_</span>
+                  <div className="flex flex-col items-start gap-1.5">
+                    <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}>suffix</span>
+                    <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(255,255,255,0.08)', color: '#ffffff' }}>{batchSettings.titleSuffix}</span>
+                  </div>
+                </>
+              )}
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(200,245,90,0.08)', color: '#c8f55a' }}>filename</span>
-              <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(255,107,53,0.08)', color: '#ff6b35' }}>orientation</span>
-              <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(167,139,250,0.08)', color: '#a78bfa' }}>duration</span>
-              <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(56,189,248,0.08)', color: '#38bdf8' }}>upload date</span>
+            <div className="space-y-1.5">
+              <p className="text-xs text-drrop-muted">
+                Title suffix{' '}
+                <span className="text-drrop-border font-normal">appended on upload</span>
+              </p>
+              <input
+                type="text"
+                value={batchSettings.titleSuffix}
+                onChange={e => setBatchSettings(s => ({ ...s, titleSuffix: e.target.value }))}
+                placeholder="e.g. sponsored_may2026"
+                className="w-full text-sm px-2.5 py-1.5 rounded-md border border-drrop-border focus:border-lime focus:outline-none bg-drrop text-drrop-text placeholder:text-drrop-muted"
+              />
             </div>
           </div>
 
@@ -830,21 +923,6 @@ export default function UploadZone({
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <p className="text-xs text-drrop-muted">
-                Title suffix{' '}
-                <span className="text-drrop-border font-normal">appended on upload</span>
-              </p>
-              <input
-                type="text"
-                value={batchSettings.titleSuffix}
-                onChange={e =>
-                  setBatchSettings(s => ({ ...s, titleSuffix: e.target.value }))
-                }
-                placeholder="e.g. sponsored_may2026"
-                className="w-full text-sm px-2.5 py-1.5 rounded-md border border-drrop-border focus:border-lime focus:outline-none bg-drrop text-drrop-text placeholder:text-drrop-muted"
-              />
-            </div>
           </div>
 
           {items.length > 0 && (
@@ -888,7 +966,7 @@ export default function UploadZone({
 
         {/* ── RIGHT — Destinations ────────────────────────────────────── */}
         <div className="space-y-4">
-          <h2 className="font-display font-bold text-lg tracking-[-0.03em] text-lime">
+          <h2 className="font-display font-bold text-xl tracking-[-0.03em] text-lime">
             connected destinations
           </h2>
 
