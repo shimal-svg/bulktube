@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 
 type GsiNotification = {
   isDisplayMoment(): boolean
@@ -40,24 +39,24 @@ export default function HeaderAuth({
   const [oneTapVisible, setOneTapVisible] = useState(false)
 
   async function handleCredential(response: { credential: string }) {
-    console.log('[OneTap] ✅ CALLBACK FIRED')
-    console.log('[OneTap] credential present:', !!response?.credential, '| length:', response?.credential?.length)
+    console.log('[OneTap] ✅ CALLBACK FIRED, credential length:', response?.credential?.length)
     setOneTapVisible(false)
-    const supabase = createClient()
     try {
-      const { data, error } = await supabase.auth.signInWithIdToken({
-        provider: 'google',
-        token: response.credential,
+      const res = await fetch('/auth/callback/one-tap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: response.credential }),
       })
-      console.log('[OneTap] signInWithIdToken result — session:', !!data?.session, '| user:', data?.user?.email, '| error:', error?.message ?? 'none')
-      if (error) {
-        console.error('[OneTap] ❌ sign-in failed:', error)
-      } else {
-        console.log('[OneTap] ✅ sign-in success, calling router.refresh()')
+      const body = await res.json()
+      console.log('[OneTap] server response:', res.status, body)
+      if (res.ok) {
+        console.log('[OneTap] ✅ sign-in success, refreshing...')
         router.refresh()
+      } else {
+        console.error('[OneTap] ❌ server error:', body.error)
       }
     } catch (err) {
-      console.error('[OneTap] ❌ unexpected exception:', err)
+      console.error('[OneTap] ❌ fetch failed:', err)
     }
   }
 
