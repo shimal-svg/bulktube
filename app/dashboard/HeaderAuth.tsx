@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 
 const LS_KEYS = [
   'drrop_ads_oauth_done', 'drrop_sheets_oauth_done',
-  'drrop_remember_channel', 'drrop_remember_ads',
   'drrop_yt_enabled', 'drrop_ads_enabled',
   'drrop_ads_customer_id', 'drrop_ads_customer_name',
 ]
