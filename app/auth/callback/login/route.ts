@@ -1,7 +1,8 @@
 import { createCallbackClient, popupResponse } from "@/lib/auth/popup-response"
+import { exchangeGoogleCode, decodeIdTokenPayload } from "@/lib/google/direct-oauth"
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
+  const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get("code")
 
   const pendingCookies: Array<{ name: string; value: string; options: Record<string, unknown> }> = []
@@ -10,21 +11,30 @@ export async function GET(request: Request) {
     return popupResponse({ type: "oauth_complete", service: "login", error: "No code" }, pendingCookies)
   }
 
-  const supabase = createCallbackClient(request, pendingCookies)
-  const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+  try {
+    const tokens = await exchangeGoogleCode(code, `${origin}/auth/callback/login`)
+    const payload = decodeIdTokenPayload(tokens.id_token)
 
-  if (error || !data?.session) {
-    return popupResponse({ type: "oauth_complete", service: "login", error: error?.message ?? "Auth failed" }, pendingCookies)
+    const supabase = createCallbackClient(request, pendingCookies)
+    const { error } = await supabase.auth.signInWithIdToken({
+      provider: "google",
+      token: tokens.id_token,
+    })
+
+    if (error) {
+      return popupResponse({ type: "oauth_complete", service: "login", error: error.message }, pendingCookies)
+    }
+
+    return popupResponse(
+      {
+        type: "oauth_complete",
+        service: "login",
+        email: payload.email,
+        avatar: payload.picture ?? null,
+      },
+      pendingCookies
+    )
+  } catch (err) {
+    return popupResponse({ type: "oauth_complete", service: "login", error: String(err) }, pendingCookies)
   }
-
-  const user = data.session.user
-  return popupResponse(
-    {
-      type: "oauth_complete",
-      service: "login",
-      email: user.email ?? null,
-      avatar: (user.user_metadata?.avatar_url as string) ?? null,
-    },
-    pendingCookies
-  )
 }

@@ -1,7 +1,5 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
-
 export default function HeaderAuth({
   email,
   avatar,
@@ -9,20 +7,22 @@ export default function HeaderAuth({
   email?: string | null
   avatar?: string | null
 }) {
-  async function openLoginPopup() {
-    const supabase = createClient()
-    const { data } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback/login`,
-        scopes: 'email profile',
-        queryParams: { access_type: 'offline', prompt: 'consent' },
-        skipBrowserRedirect: true,
-      },
+  function openLoginPopup() {
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+    if (!clientId) return
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: `${window.location.origin}/auth/callback/login`,
+      response_type: 'code',
+      scope: 'openid email profile',
+      access_type: 'offline',
+      prompt: 'consent',
+      state: 'login',
     })
-    if (data?.url) {
-      window.open(data.url, '_blank', 'width=560,height=660,popup=yes,left=200,top=100')
-    }
+
+    const url = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
+    window.open(url, '_blank', 'width=560,height=660,popup=yes,left=200,top=100')
   }
 
   if (email) {

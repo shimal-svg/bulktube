@@ -1,9 +1,10 @@
 import { createCallbackClient, popupResponse } from "@/lib/auth/popup-response"
+import { exchangeGoogleCode } from "@/lib/google/direct-oauth"
 import { saveGoogleTokens } from "@/lib/google/token"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
+  const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get("code")
 
   const pendingCookies: Array<{ name: string; value: string; options: Record<string, unknown> }> = []
@@ -12,24 +13,27 @@ export async function GET(request: Request) {
     return popupResponse({ type: "oauth_complete", service: "youtube", error: "No code" }, pendingCookies)
   }
 
-  const supabase = createCallbackClient(request, pendingCookies)
-  const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+  try {
+    const tokens = await exchangeGoogleCode(code, `${origin}/auth/callback/youtube`)
 
-  if (error || !data?.session) {
-    return popupResponse({ type: "oauth_complete", service: "youtube", error: error?.message ?? "Auth failed" }, pendingCookies)
-  }
+    const supabase = createCallbackClient(request, pendingCookies)
+    const { data, error } = await supabase.auth.signInWithIdToken({
+      provider: "google",
+      token: tokens.id_token,
+    })
 
-  const session = data.session
-  const userId = session.user.id
+    if (error || !data?.user) {
+      return popupResponse({ type: "oauth_complete", service: "youtube", error: error?.message ?? "Auth failed" }, pendingCookies)
+    }
 
-  if (session.provider_token) {
-    await saveGoogleTokens(userId, session.provider_token, session.provider_refresh_token, 3600)
+    const userId = data.user.id
+    await saveGoogleTokens(userId, tokens.access_token, tokens.refresh_token, tokens.expires_in)
 
-    // Auto-save the user's primary YouTube channel
+    // Auto-save primary YouTube channel
     try {
       const ytRes = await fetch(
         "https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true",
-        { headers: { Authorization: `Bearer ${session.provider_token}` } }
+        { headers: { Authorization: `Bearer ${tokens.access_token}` } }
       )
       if (ytRes.ok) {
         const ytData = await ytRes.json()
@@ -57,9 +61,11 @@ export async function GET(request: Request) {
         }
       }
     } catch {
-      // Non-fatal: session is still set, channel just wasn't auto-saved
+      // Non-fatal: session is set, channel just wasn't auto-saved
     }
-  }
 
-  return popupResponse({ type: "oauth_complete", service: "youtube" }, pendingCookies)
+    return popupResponse({ type: "oauth_complete", service: "youtube" }, pendingCookies)
+  } catch (err) {
+    return popupResponse({ type: "oauth_complete", service: "youtube", error: String(err) }, pendingCookies)
+  }
 }
