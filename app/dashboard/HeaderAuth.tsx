@@ -3,6 +3,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+const LS_KEYS = [
+  'drrop_ads_oauth_done', 'drrop_sheets_oauth_done',
+  'drrop_remember_channel', 'drrop_remember_ads',
+  'drrop_yt_enabled', 'drrop_ads_enabled',
+  'drrop_ads_customer_id', 'drrop_ads_customer_name',
+]
+
 type GsiNotification = {
   isDisplayMoment(): boolean
   isDisplayed(): boolean
@@ -23,6 +30,7 @@ declare global {
           }): void
           prompt(callback?: (notification: GsiNotification) => void): void
           cancel(): void
+          disableAutoSelect(): void
         }
       }
     }
@@ -38,7 +46,29 @@ export default function HeaderAuth({
 }) {
   const router = useRouter()
   const [oneTapVisible, setOneTapVisible] = useState(false)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const rawNonceRef = useRef<string | null>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!dropdownOpen) return
+    function onClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [dropdownOpen])
+
+  async function handleSignOut() {
+    setDropdownOpen(false)
+    window.google?.accounts?.id?.disableAutoSelect()
+    await fetch('/auth/signout', { method: 'POST' })
+    LS_KEYS.forEach(k => localStorage.removeItem(k))
+    window.dispatchEvent(new CustomEvent('drrop:signout'))
+    router.refresh()
+  }
 
   async function handleCredential(response: { credential: string }) {
     console.log('[OneTap] ✅ CALLBACK FIRED, credential length:', response?.credential?.length)
@@ -135,17 +165,30 @@ export default function HeaderAuth({
 
   if (email) {
     return (
-      <div className="flex items-center gap-3">
-        {avatar && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={avatar} alt={email} className="h-7 w-7 rounded-full" />
+      <div className="relative" ref={dropdownRef}>
+        <button
+          onClick={() => setDropdownOpen(v => !v)}
+          className="flex items-center gap-2 hover:opacity-80 transition"
+        >
+          {avatar && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={avatar} alt={email} className="h-7 w-7 rounded-full" />
+          )}
+          <span className="text-sm text-drrop-subtle">{email}</span>
+          <svg className="w-3 h-3 text-drrop-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {dropdownOpen && (
+          <div className="absolute right-0 top-full mt-2 w-52 rounded-lg border border-drrop-border bg-surface shadow-xl z-50 overflow-hidden">
+            <button
+              onClick={handleSignOut}
+              className="w-full text-left px-4 py-2.5 text-sm text-drrop-text hover:bg-drrop transition"
+            >
+              Sign out of everything
+            </button>
+          </div>
         )}
-        <span className="text-sm text-drrop-subtle">{email}</span>
-        <form action="/auth/signout" method="POST">
-          <button className="text-sm text-drrop-muted hover:text-drrop-text transition">
-            Sign out
-          </button>
-        </form>
       </div>
     )
   }

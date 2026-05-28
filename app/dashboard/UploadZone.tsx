@@ -386,6 +386,15 @@ export default function UploadZone({
     return () => window.removeEventListener('message', handleMessage)
   }, [router])
 
+  useEffect(() => {
+    function handleSignOut() {
+      setAdsOAuthDone(false)
+      setSheetsOAuthDone(false)
+    }
+    window.addEventListener('drrop:signout', handleSignOut)
+    return () => window.removeEventListener('drrop:signout', handleSignOut)
+  }, [])
+
   // ── load persisted preferences on mount ────────────────────────────────
   useEffect(() => {
     const rc = localStorage.getItem('drrop_remember_channel') === 'true'
