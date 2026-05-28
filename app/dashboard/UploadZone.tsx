@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, DragEvent, ChangeEvent, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 type Orientation = 'portrait' | 'landscape' | 'square'
 type Privacy = 'public' | 'unlisted' | 'private'
@@ -211,9 +212,11 @@ function GoogleAdsIcon() {
 // ─── component ──────────────────────────────────────────────────────────────
 
 export default function UploadZone({
+  isAuthenticated,
   channelName,
   channelThumbnail,
 }: {
+  isAuthenticated: boolean
   channelName?: string | null
   channelThumbnail?: string | null
 }) {
@@ -248,6 +251,27 @@ export default function UploadZone({
   // ── modal state ─────────────────────────────────────────────────────────
   const [connectModal, setConnectModal] = useState<'youtube' | 'ads' | null>(null)
   const [uploadGateModal, setUploadGateModal] = useState(false)
+
+  // ── OAuth connect ───────────────────────────────────────────────────────
+  async function connectService(service: 'youtube' | 'ads') {
+    const supabase = createClient()
+    const base = [
+      'https://www.googleapis.com/auth/youtube.upload',
+      'https://www.googleapis.com/auth/youtube.readonly',
+      'https://www.googleapis.com/auth/drive.file',
+    ]
+    const scopes = service === 'ads'
+      ? [...base, 'https://www.googleapis.com/auth/adwords']
+      : base
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        scopes: scopes.join(' '),
+        queryParams: { access_type: 'offline', prompt: 'consent' },
+      },
+    })
+  }
 
   // ── derived ─────────────────────────────────────────────────────────────
   const youtubeConnected = !!channelName
@@ -861,10 +885,10 @@ export default function UploadZone({
               <div className="space-y-3">
                 <p className="text-sm text-drrop-muted">No YouTube channel connected.</p>
                 <button
-                  onClick={() => setConnectModal('youtube')}
+                  onClick={() => isAuthenticated ? setConnectModal('youtube') : connectService('youtube')}
                   className="w-full rounded-lg border border-drrop-border bg-drrop px-4 py-2 text-sm font-medium text-drrop-text hover:border-lime hover:text-lime transition"
                 >
-                  How to connect
+                  Connect YouTube
                 </button>
               </div>
             )}
@@ -938,10 +962,10 @@ export default function UploadZone({
                 </>
               ) : (
                 <button
-                  onClick={() => setConnectModal('ads')}
+                  onClick={() => isAuthenticated ? setConnectModal('ads') : connectService('ads')}
                   className="w-full rounded-lg border border-drrop-border bg-drrop px-4 py-2 text-sm font-medium text-drrop-text hover:border-lime hover:text-lime transition"
                 >
-                  How to connect
+                  Connect Google Ads
                 </button>
               )}
             </div>
@@ -954,17 +978,36 @@ export default function UploadZone({
 
       <Modal open={uploadGateModal} onClose={() => setUploadGateModal(false)}>
         <h2 className="font-display font-bold text-lg tracking-[-0.03em] text-drrop-text mb-2">
-          Enable a destination
+          {isAuthenticated ? 'Enable a destination' : 'Connect an account'}
         </h2>
         <p className="text-sm text-drrop-muted mb-5">
-          Enable at least one upload destination — YouTube or Google Ads — before starting your upload.
+          {isAuthenticated
+            ? 'Enable at least one upload destination — YouTube or Google Ads — before starting your upload.'
+            : 'Connect a YouTube channel or Google Ads account to start uploading.'}
         </p>
-        <button
-          onClick={() => setUploadGateModal(false)}
-          className="w-full rounded-full bg-lime text-drrop px-4 py-2.5 text-sm font-bold tracking-[-0.02em] hover:bg-[#d9ff6a] transition"
-        >
-          Got it
-        </button>
+        {!isAuthenticated ? (
+          <div className="flex gap-3">
+            <button
+              onClick={() => { setUploadGateModal(false); connectService('youtube') }}
+              className="flex-1 rounded-full bg-lime text-drrop px-4 py-2.5 text-sm font-bold tracking-[-0.02em] hover:bg-[#d9ff6a] transition"
+            >
+              Connect YouTube
+            </button>
+            <button
+              onClick={() => { setUploadGateModal(false); connectService('ads') }}
+              className="flex-1 rounded-full border border-drrop-border bg-drrop text-drrop-text px-4 py-2.5 text-sm font-medium hover:border-lime hover:text-lime transition"
+            >
+              Connect Ads
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setUploadGateModal(false)}
+            className="w-full rounded-full bg-lime text-drrop px-4 py-2.5 text-sm font-bold tracking-[-0.02em] hover:bg-[#d9ff6a] transition"
+          >
+            Got it
+          </button>
+        )}
       </Modal>
 
       <Modal open={connectModal === 'youtube'} onClose={() => setConnectModal(null)}>

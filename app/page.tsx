@@ -511,7 +511,7 @@ export default function LandingPage() {
         <Link href="/" className="nav-logo">
           d<span className="rr-first">r</span><span className="rr-second">r</span>op.io
         </Link>
-        <Link href="/login" className="nav-cta">Get started free →</Link>
+        <Link href="/dashboard" className="nav-cta">Get started free →</Link>
       </nav>
 
       <section className="hero">
@@ -563,7 +563,7 @@ export default function LandingPage() {
         </div>
 
         <div className="hero-actions">
-          <Link href="/login" className="btn-primary">
+          <Link href="/dashboard" className="btn-primary">
             ★ Get started — 3 free uploads
           </Link>
         </div>
@@ -758,7 +758,7 @@ export default function LandingPage() {
             <h3>Start with 3 free uploads.</h3>
             <p>No credit card required. Just sign in with Google and start uploading.</p>
           </div>
-          <Link href="/login" className="btn-primary" style={{ flexShrink: 0 }}>Try it free →</Link>
+          <Link href="/dashboard" className="btn-primary" style={{ flexShrink: 0 }}>Try it free →</Link>
         </div>
 
         <div className="pricing-grid">
@@ -805,7 +805,7 @@ export default function LandingPage() {
         <div className="cta-bg" />
         <h2>Stop uploading<br />one at a time.</h2>
         <p>Join media buyers and agencies who upload smarter with drrop.io.</p>
-        <Link href="/login" className="btn-primary" style={{ fontSize: "1.1rem", padding: "1rem 2.5rem" }}>
+        <Link href="/dashboard" className="btn-primary" style={{ fontSize: "1.1rem", padding: "1rem 2.5rem" }}>
           Get started — 3 free uploads
         </Link>
       </section>

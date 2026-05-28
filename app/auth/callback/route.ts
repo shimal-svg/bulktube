@@ -8,11 +8,11 @@ export async function GET(request: Request) {
   const error = searchParams.get("error");
 
   if (error) {
-    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error)}`);
+    return NextResponse.redirect(`${origin}/dashboard`);
   }
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/login?error=no_code`);
+    return NextResponse.redirect(`${origin}/dashboard`);
   }
 
   // Collect cookies written during exchangeCodeForSession so they can be
@@ -49,7 +49,7 @@ export async function GET(request: Request) {
     await supabase.auth.exchangeCodeForSession(code);
 
   if (exchangeError) {
-    return NextResponse.redirect(`${origin}/login?error=exchange_failed`);
+    return NextResponse.redirect(`${origin}/dashboard`);
   }
 
   const oauthSession = exchangeData?.session;
