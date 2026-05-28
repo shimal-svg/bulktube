@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getValidGoogleToken } from "@/lib/google/token";
 import { NextResponse } from "next/server";
 
-const ADS_VERSION = "v17";
+const ADS_VERSION = "v20";
 
 // Format raw customer ID digits as XXX-XXX-XXXX
 function formatCustomerId(id: string): string {
@@ -46,8 +46,15 @@ export async function GET() {
 
   if (!listRes.ok) {
     const body = await listRes.json().catch(() => ({}));
+    const reason = body?.error?.details?.[0]?.reason;
+    if (reason === "ACCESS_TOKEN_SCOPE_INSUFFICIENT") {
+      return NextResponse.json(
+        { error: "Google Ads permission not granted. Sign out and sign in again to connect your Ads account." },
+        { status: 403 }
+      );
+    }
     return NextResponse.json(
-      { error: "Google Ads API error", detail: body },
+      { error: body?.error?.message ?? "Google Ads API error" },
       { status: listRes.status }
     );
   }
