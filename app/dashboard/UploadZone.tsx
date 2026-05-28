@@ -336,8 +336,6 @@ export default function UploadZone({
   // ── destination toggle state ────────────────────────────────────────────
   const [uploadToYouTube, setUploadToYouTube] = useState(false)
   const [uploadToGoogleAds, setUploadToGoogleAds] = useState(false)
-  const [rememberChannel, setRememberChannel] = useState(false)
-  const [rememberAdsAccount, setRememberAdsAccount] = useState(false)
 
   // ── Google Ads account state ────────────────────────────────────────────
   const [adsAccounts, setAdsAccounts] = useState<AdsAccount[]>([])
@@ -397,21 +395,13 @@ export default function UploadZone({
 
   // ── load persisted preferences on mount ────────────────────────────────
   useEffect(() => {
-    const rc = localStorage.getItem('drrop_remember_channel') === 'true'
-    const ra = localStorage.getItem('drrop_remember_ads') === 'true'
-    setRememberChannel(rc)
-    setRememberAdsAccount(ra)
+    setUploadToYouTube(localStorage.getItem('drrop_yt_enabled') === 'true')
+    setUploadToGoogleAds(localStorage.getItem('drrop_ads_enabled') === 'true')
 
-    if (rc) {
-      setUploadToYouTube(localStorage.getItem('drrop_yt_enabled') === 'true')
-    }
-    if (ra) {
-      setUploadToGoogleAds(localStorage.getItem('drrop_ads_enabled') === 'true')
-      const savedId = localStorage.getItem('drrop_ads_customer_id')
-      const savedName = localStorage.getItem('drrop_ads_customer_name')
-      if (savedId && savedName) {
-        setSelectedAdsAccount({ id: savedId, name: savedName, formattedId: formatCustomerId(savedId) })
-      }
+    const savedId = localStorage.getItem('drrop_ads_customer_id')
+    const savedName = localStorage.getItem('drrop_ads_customer_name')
+    if (savedId && savedName) {
+      setSelectedAdsAccount({ id: savedId, name: savedName, formattedId: formatCustomerId(savedId) })
     }
 
     if (localStorage.getItem('drrop_ads_oauth_done') === 'true') setAdsOAuthDone(true)
@@ -421,29 +411,13 @@ export default function UploadZone({
   // ── destination toggle handlers ─────────────────────────────────────────
   function handleToggleYouTube(v: boolean) {
     setUploadToYouTube(v)
-    if (rememberChannel) localStorage.setItem('drrop_yt_enabled', String(v))
+    localStorage.setItem('drrop_yt_enabled', String(v))
   }
 
   function handleToggleGoogleAds(v: boolean) {
     setUploadToGoogleAds(v)
-    if (rememberAdsAccount) localStorage.setItem('drrop_ads_enabled', String(v))
+    localStorage.setItem('drrop_ads_enabled', String(v))
     if (v && adsAccounts.length === 0 && !adsAccountsLoading) fetchAdsAccounts()
-  }
-
-  function handleRememberChannel(v: boolean) {
-    setRememberChannel(v)
-    localStorage.setItem('drrop_remember_channel', String(v))
-    if (v) localStorage.setItem('drrop_yt_enabled', String(uploadToYouTube))
-  }
-
-  function handleRememberAds(v: boolean) {
-    setRememberAdsAccount(v)
-    localStorage.setItem('drrop_remember_ads', String(v))
-    if (v && selectedAdsAccount) {
-      localStorage.setItem('drrop_ads_customer_id', selectedAdsAccount.id)
-      localStorage.setItem('drrop_ads_customer_name', selectedAdsAccount.name)
-      saveAdsAccountToDb(selectedAdsAccount)
-    }
   }
 
   // ── Google Ads account helpers ──────────────────────────────────────────
@@ -476,7 +450,7 @@ export default function UploadZone({
     setAdsSearch('')
     localStorage.setItem('drrop_ads_customer_id', account.id)
     localStorage.setItem('drrop_ads_customer_name', account.name)
-    if (rememberAdsAccount) saveAdsAccountToDb(account)
+    saveAdsAccountToDb(account)
   }
 
   // ── computed ────────────────────────────────────────────────────────────
@@ -1037,10 +1011,6 @@ export default function UploadZone({
                   </label>
                   <Toggle checked={uploadToYouTube} onChange={handleToggleYouTube} id="toggle-yt" />
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-drrop-muted">Remember preference</span>
-                  <Toggle size="sm" checked={rememberChannel} onChange={handleRememberChannel} id="remember-yt" />
-                </div>
               </div>
             ) : (
               <div className="space-y-3">
@@ -1117,10 +1087,6 @@ export default function UploadZone({
                         Include in this upload
                       </label>
                       <Toggle checked={uploadToGoogleAds} onChange={handleToggleGoogleAds} id="toggle-ads" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-drrop-muted">Remember preference</span>
-                      <Toggle size="sm" checked={rememberAdsAccount} onChange={handleRememberAds} id="remember-ads" />
                     </div>
                   </>
                 )}
