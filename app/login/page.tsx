@@ -19,6 +19,7 @@ export default function LoginPage() {
           "https://www.googleapis.com/auth/youtube.upload",
           "https://www.googleapis.com/auth/youtube.readonly",
           "https://www.googleapis.com/auth/drive.file",
+          "https://www.googleapis.com/auth/adwords",
         ].join(" "),
         queryParams: {
           access_type: "offline",

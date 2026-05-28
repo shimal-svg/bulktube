@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, DragEvent, ChangeEvent } from 'react'
+import { useState, useRef, useEffect, DragEvent, ChangeEvent } from 'react'
 import { useRouter } from 'next/navigation'
 
 type Orientation = 'portrait' | 'landscape' | 'square'
@@ -28,6 +28,12 @@ interface BatchSettings {
   titleSuffix: string
 }
 
+interface AdsAccount {
+  id: string
+  name: string
+  formattedId: string
+}
+
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 function formatUploadDate(): string {
@@ -47,6 +53,11 @@ function formatDuration(seconds: number): string {
 function buildTitle(file: File, orientation: Orientation, duration: number): string {
   const stem = file.name.replace(/\.[^.]+$/, '')
   return `${stem}_${orientation}_${formatDuration(duration)}_${formatUploadDate()}`
+}
+
+function formatCustomerId(id: string): string {
+  const d = id.replace(/\D/g, '')
+  return d.length === 10 ? `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}` : id
 }
 
 async function readVideoMeta(
@@ -110,9 +121,49 @@ function xhrUpload(
   })
 }
 
+// ─── Toggle ─────────────────────────────────────────────────────────────────
+
+function Toggle({
+  checked,
+  onChange,
+  size = 'md',
+  id,
+}: {
+  checked: boolean
+  onChange: (v: boolean) => void
+  size?: 'sm' | 'md'
+  id?: string
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      id={id}
+      onClick={() => onChange(!checked)}
+      className={[
+        'relative inline-flex shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-lime',
+        size === 'md' ? 'h-5 w-9' : 'h-4 w-7',
+        checked ? 'bg-lime' : 'bg-drrop-border',
+      ].join(' ')}
+    >
+      <span
+        className={[
+          'pointer-events-none inline-block rounded-full bg-white shadow transform transition-transform duration-200',
+          size === 'md' ? 'h-4 w-4' : 'h-3 w-3',
+          checked
+            ? size === 'md' ? 'translate-x-4' : 'translate-x-3'
+            : 'translate-x-0',
+        ].join(' ')}
+      />
+    </button>
+  )
+}
+
 // ─── component ──────────────────────────────────────────────────────────────
 
 export default function UploadZone() {
+  // ── existing state ─────────────────────────────────────────────────────
   const [items, setItems] = useState<VideoItem[]>([])
   const [dragging, setDragging] = useState(false)
   const [batchUploading, setBatchUploading] = useState(false)
@@ -126,6 +177,112 @@ export default function UploadZone() {
   const sessionIdRef = useRef<string | null>(null)
   const router = useRouter()
 
+  // ── destination toggle state ────────────────────────────────────────────
+  const [uploadToYouTube, setUploadToYouTube] = useState(false)
+  const [uploadToGoogleAds, setUploadToGoogleAds] = useState(false)
+  const [rememberChannel, setRememberChannel] = useState(false)
+  const [rememberAdsAccount, setRememberAdsAccount] = useState(false)
+
+  // ── Google Ads account state ────────────────────────────────────────────
+  const [adsAccounts, setAdsAccounts] = useState<AdsAccount[]>([])
+  const [adsAccountsLoading, setAdsAccountsLoading] = useState(false)
+  const [adsAccountsError, setAdsAccountsError] = useState<string | null>(null)
+  const [adsSearch, setAdsSearch] = useState('')
+  const [adsDropdownOpen, setAdsDropdownOpen] = useState(false)
+  const [selectedAdsAccount, setSelectedAdsAccount] = useState<AdsAccount | null>(null)
+
+  // ── load persisted preferences on mount ────────────────────────────────
+  useEffect(() => {
+    const rc = localStorage.getItem('drrop_remember_channel') === 'true'
+    const ra = localStorage.getItem('drrop_remember_ads') === 'true'
+    setRememberChannel(rc)
+    setRememberAdsAccount(ra)
+
+    if (rc) {
+      setUploadToYouTube(localStorage.getItem('drrop_yt_enabled') === 'true')
+    }
+    if (ra) {
+      setUploadToGoogleAds(localStorage.getItem('drrop_ads_enabled') === 'true')
+      const savedId = localStorage.getItem('drrop_ads_customer_id')
+      const savedName = localStorage.getItem('drrop_ads_customer_name')
+      if (savedId && savedName) {
+        setSelectedAdsAccount({ id: savedId, name: savedName, formattedId: formatCustomerId(savedId) })
+      }
+    }
+  }, [])
+
+  // ── destination toggle handlers ─────────────────────────────────────────
+  function handleToggleYouTube(v: boolean) {
+    setUploadToYouTube(v)
+    if (rememberChannel) localStorage.setItem('drrop_yt_enabled', String(v))
+  }
+
+  function handleToggleGoogleAds(v: boolean) {
+    setUploadToGoogleAds(v)
+    if (rememberAdsAccount) localStorage.setItem('drrop_ads_enabled', String(v))
+    if (v && adsAccounts.length === 0 && !adsAccountsLoading) fetchAdsAccounts()
+  }
+
+  function handleRememberChannel(v: boolean) {
+    setRememberChannel(v)
+    localStorage.setItem('drrop_remember_channel', String(v))
+    if (v) localStorage.setItem('drrop_yt_enabled', String(uploadToYouTube))
+  }
+
+  function handleRememberAds(v: boolean) {
+    setRememberAdsAccount(v)
+    localStorage.setItem('drrop_remember_ads', String(v))
+    if (v && selectedAdsAccount) {
+      localStorage.setItem('drrop_ads_customer_id', selectedAdsAccount.id)
+      localStorage.setItem('drrop_ads_customer_name', selectedAdsAccount.name)
+      saveAdsAccountToDb(selectedAdsAccount)
+    }
+  }
+
+  // ── Google Ads account helpers ──────────────────────────────────────────
+  async function fetchAdsAccounts() {
+    setAdsAccountsLoading(true)
+    setAdsAccountsError(null)
+    try {
+      const res = await fetch('/api/google-ads/customers')
+      const data = await res.json()
+      if (data.error) setAdsAccountsError(data.error)
+      else setAdsAccounts(data.customers ?? [])
+    } catch {
+      setAdsAccountsError('Failed to load accounts')
+    } finally {
+      setAdsAccountsLoading(false)
+    }
+  }
+
+  function saveAdsAccountToDb(account: AdsAccount) {
+    fetch('/api/user/ads-account', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customerId: account.id, customerName: account.name }),
+    }).catch(() => {})
+  }
+
+  function selectAdsAccount(account: AdsAccount) {
+    setSelectedAdsAccount(account)
+    setAdsDropdownOpen(false)
+    setAdsSearch('')
+    localStorage.setItem('drrop_ads_customer_id', account.id)
+    localStorage.setItem('drrop_ads_customer_name', account.name)
+    if (rememberAdsAccount) saveAdsAccountToDb(account)
+  }
+
+  // ── computed ────────────────────────────────────────────────────────────
+  const activeDestinations = (uploadToYouTube ? 1 : 0) + (uploadToGoogleAds ? 1 : 0)
+  const creditCount = items.length * activeDestinations
+  const filteredAdsAccounts = adsAccounts.filter(
+    (a) =>
+      adsSearch === '' ||
+      a.name.toLowerCase().includes(adsSearch.toLowerCase()) ||
+      a.formattedId.includes(adsSearch)
+  )
+
+  // ── existing helpers ────────────────────────────────────────────────────
   function patchItem(id: string, patch: Partial<VideoItem>) {
     setItems(prev => prev.map(i => (i.id === id ? { ...i, ...patch } : i)))
   }
@@ -362,8 +519,107 @@ export default function UploadZone() {
   const hasIdle = idleItems.length > 0
 
   return (
-    <div className="space-y-6">
-      {/* Drop zone */}
+    <div className="space-y-4">
+
+      {/* ── Credit counter ─────────────────────────────────────────────── */}
+      {creditCount > 0 && (
+        <div className="flex items-center gap-3 rounded-lg bg-lime/10 border border-lime/20 px-4 py-2.5">
+          <span className="text-lime font-semibold text-sm">
+            Uploading {creditCount} Video{creditCount !== 1 ? 's' : ''}
+          </span>
+          <span className="text-drrop-muted text-xs">
+            {items.length} {items.length !== 1 ? 'videos' : 'video'} × {activeDestinations} destination{activeDestinations !== 1 ? 's' : ''}
+          </span>
+        </div>
+      )}
+
+      {/* ── Destination toggles ────────────────────────────────────────── */}
+      <div className="rounded-xl border border-drrop-border bg-surface px-4 py-3 space-y-3">
+        <p className="text-xs font-semibold text-drrop-muted uppercase tracking-wide">
+          Upload destinations
+        </p>
+
+        {/* YouTube */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Toggle checked={uploadToYouTube} onChange={handleToggleYouTube} id="toggle-yt" />
+            <label htmlFor="toggle-yt" className="text-sm font-medium text-drrop-text cursor-pointer select-none">
+              Upload to YouTube
+            </label>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-drrop-muted">Remember</span>
+            <Toggle size="sm" checked={rememberChannel} onChange={handleRememberChannel} id="remember-yt" />
+          </div>
+        </div>
+
+        {/* Google Ads */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Toggle checked={uploadToGoogleAds} onChange={handleToggleGoogleAds} id="toggle-ads" />
+              <label htmlFor="toggle-ads" className="text-sm font-medium text-drrop-text cursor-pointer select-none">
+                Upload to Google Ads
+              </label>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-drrop-muted">Remember</span>
+              <Toggle size="sm" checked={rememberAdsAccount} onChange={handleRememberAds} id="remember-ads" />
+            </div>
+          </div>
+
+          {/* Account dropdown — visible when Google Ads toggle is ON */}
+          {uploadToGoogleAds && (
+            <div className="relative ml-0">
+              <input
+                type="text"
+                placeholder={
+                  selectedAdsAccount
+                    ? `${selectedAdsAccount.name} — ${selectedAdsAccount.formattedId}`
+                    : adsAccountsLoading
+                    ? 'Loading accounts…'
+                    : 'Search accounts…'
+                }
+                value={adsSearch}
+                onChange={(e) => { setAdsSearch(e.target.value); setAdsDropdownOpen(true) }}
+                onFocus={() => { setAdsDropdownOpen(true); if (adsAccounts.length === 0 && !adsAccountsLoading) fetchAdsAccounts() }}
+                onBlur={() => setTimeout(() => setAdsDropdownOpen(false), 150)}
+                disabled={adsAccountsLoading}
+                className="w-full text-sm px-3 py-2 rounded-lg border border-drrop-border bg-drrop text-drrop-text placeholder:text-drrop-muted focus:border-lime focus:outline-none disabled:opacity-50"
+              />
+
+              {adsDropdownOpen && !adsAccountsLoading && (
+                <div className="absolute top-full mt-1 left-0 right-0 z-20 rounded-lg border border-drrop-border bg-surface shadow-xl max-h-56 overflow-y-auto">
+                  {adsAccountsError && (
+                    <p className="px-3 py-3 text-sm text-red-400">{adsAccountsError}</p>
+                  )}
+                  {!adsAccountsError && filteredAdsAccounts.length === 0 && (
+                    <p className="px-3 py-4 text-sm text-drrop-muted text-center">No accounts found</p>
+                  )}
+                  {!adsAccountsError && filteredAdsAccounts.map((account) => (
+                    <button
+                      key={account.id}
+                      onMouseDown={() => selectAdsAccount(account)}
+                      className="flex w-full items-center justify-between px-3 py-2.5 text-sm hover:bg-lime/5 transition text-left"
+                    >
+                      <span className="text-drrop-text truncate">{account.name}</span>
+                      <span className="text-drrop-muted text-xs ml-3 shrink-0">{account.formattedId}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {selectedAdsAccount && !adsDropdownOpen && (
+                <p className="mt-1.5 text-xs text-lime">
+                  ✓ {selectedAdsAccount.name} — {selectedAdsAccount.formattedId}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Drop zone ──────────────────────────────────────────────────── */}
       <div
         onDrop={handleDrop}
         onDragOver={(e) => { e.preventDefault(); setDragging(true) }}

@@ -1,0 +1,92 @@
+import { createClient } from "@/lib/supabase/server";
+import { getValidGoogleToken } from "@/lib/google/token";
+import { NextResponse } from "next/server";
+
+const ADS_VERSION = "v17";
+
+// Format raw customer ID digits as XXX-XXX-XXXX
+function formatCustomerId(id: string): string {
+  const d = id.replace(/\D/g, "");
+  return d.length === 10
+    ? `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`
+    : id;
+}
+
+export async function GET() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const token = await getValidGoogleToken(user.id);
+  if (!token)
+    return NextResponse.json(
+      { error: "Google token unavailable. Sign out and sign in again." },
+      { status: 401 }
+    );
+
+  const devToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN;
+  if (!devToken)
+    return NextResponse.json(
+      { error: "Google Ads developer token not configured on this server." },
+      { status: 503 }
+    );
+
+  // Step 1 — list accessible customer resource names
+  const listRes = await fetch(
+    `https://googleads.googleapis.com/${ADS_VERSION}/customers:listAccessibleCustomers`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "developer-token": devToken,
+      },
+    }
+  );
+
+  if (!listRes.ok) {
+    const body = await listRes.json().catch(() => ({}));
+    return NextResponse.json(
+      { error: "Google Ads API error", detail: body },
+      { status: listRes.status }
+    );
+  }
+
+  const { resourceNames = [] }: { resourceNames?: string[] } = await listRes.json();
+  const customerIds = (resourceNames as string[])
+    .map((r) => r.replace("customers/", ""))
+    .slice(0, 50);
+
+  // Step 2 — fetch descriptive name for each customer via GAQL
+  const customers = await Promise.all(
+    customerIds.map(async (id) => {
+      try {
+        const res = await fetch(
+          `https://googleads.googleapis.com/${ADS_VERSION}/customers/${id}/googleAds:search`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "developer-token": devToken,
+              "Content-Type": "application/json",
+              "login-customer-id": id,
+            },
+            body: JSON.stringify({
+              query:
+                "SELECT customer.id, customer.descriptive_name FROM customer LIMIT 1",
+            }),
+          }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          const name: string =
+            data.results?.[0]?.customer?.descriptiveName ?? `Account ${id}`;
+          return { id, name, formattedId: formatCustomerId(id) };
+        }
+      } catch {}
+      return { id, name: `Account ${id}`, formattedId: formatCustomerId(id) };
+    })
+  );
+
+  return NextResponse.json({ customers });
+}
