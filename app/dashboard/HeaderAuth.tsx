@@ -1,5 +1,34 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+
+type GsiNotification = {
+  isDisplayMoment(): boolean
+  isDisplayed(): boolean
+  isSkippedMoment(): boolean
+  isDismissedMoment(): boolean
+}
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize(config: {
+            client_id: string
+            auto_select: boolean
+            callback: (response: { credential: string }) => void
+          }): void
+          prompt(callback?: (notification: GsiNotification) => void): void
+          cancel(): void
+        }
+      }
+    }
+  }
+}
+
 export default function HeaderAuth({
   email,
   avatar,
@@ -7,6 +36,55 @@ export default function HeaderAuth({
   email?: string | null
   avatar?: string | null
 }) {
+  const router = useRouter()
+  const [oneTapVisible, setOneTapVisible] = useState(false)
+  const initialized = useRef(false)
+
+  async function handleCredential(response: { credential: string }) {
+    setOneTapVisible(false)
+    const supabase = createClient()
+    const { error } = await supabase.auth.signInWithIdToken({
+      provider: 'google',
+      token: response.credential,
+    })
+    if (!error) router.refresh()
+  }
+
+  useEffect(() => {
+    if (email || initialized.current) return
+    initialized.current = true
+
+    function init() {
+      window.google!.accounts.id.initialize({
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+        auto_select: true,
+        callback: handleCredential,
+      })
+      window.google!.accounts.id.prompt((n) => {
+        if (n.isDisplayMoment()) {
+          setOneTapVisible(n.isDisplayed())
+        } else if (n.isDismissedMoment()) {
+          setOneTapVisible(false)
+          window.google!.accounts.id.cancel()
+        }
+      })
+    }
+
+    if (window.google?.accounts?.id) {
+      init()
+      return
+    }
+
+    const timer = setInterval(() => {
+      if (window.google?.accounts?.id) {
+        clearInterval(timer)
+        init()
+      }
+    }, 50)
+    return () => clearInterval(timer)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email])
+
   function openLoginPopup() {
     window.open(
       '/auth/callback/initiate?service=login',
@@ -31,6 +109,8 @@ export default function HeaderAuth({
       </div>
     )
   }
+
+  if (oneTapVisible) return null
 
   return (
     <button
