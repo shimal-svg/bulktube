@@ -287,11 +287,11 @@ function ColoredTitle({ item, suffix }: { item: VideoItem; suffix: string }) {
 
 // ─── Modal step helpers ──────────────────────────────────────────────────────
 
-function StepCircle({ label }: { label: string }) {
+function StepBadge({ label }: { label: string }) {
   return (
     <div
-      className="flex items-center justify-center rounded-full text-drrop font-bold shrink-0"
-      style={{ width: 72, height: 72, background: '#c8f55a', fontSize: 30 }}
+      className="inline-flex items-center justify-center rounded-lg text-drrop font-bold shrink-0 text-sm"
+      style={{ background: '#c8f55a', padding: '6px 12px' }}
     >
       {label}
     </div>
@@ -300,11 +300,8 @@ function StepCircle({ label }: { label: string }) {
 
 function StepConnector() {
   return (
-    <div className="flex gap-4">
-      <div className="flex justify-center" style={{ width: 72 }}>
-        <div className="w-px" style={{ height: 14, background: '#c8f55a' }} />
-      </div>
-      <div className="flex-1" />
+    <div style={{ paddingLeft: 40 }}>
+      <div className="w-px" style={{ height: 14, background: '#c8f55a' }} />
     </div>
   )
 }
@@ -1188,7 +1185,7 @@ export default function UploadZone({
         <div>
           {/* Step 1 */}
           <div className="flex items-center gap-4">
-            <StepCircle label="1" />
+            <StepBadge label="Step 1" />
             {!isAuthenticated ? (
               <button
                 onClick={() => { setUploadGateModal(false); openAuthPopup('login') }}
@@ -1209,7 +1206,7 @@ export default function UploadZone({
 
           {/* Step 2a */}
           <div className="flex items-center gap-4">
-            <StepCircle label="2a" />
+            <StepBadge label="Step 2a" />
             <button
               onClick={() => { setUploadGateModal(false); openAuthPopup('youtube') }}
               className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
@@ -1220,18 +1217,17 @@ export default function UploadZone({
           </div>
 
           {/* Connector 2a → 2b with "or" */}
-          <div className="flex gap-4">
-            <div className="flex flex-col items-center" style={{ width: 72 }}>
+          <div style={{ paddingLeft: 28 }}>
+            <div className="flex flex-col items-center" style={{ width: 24 }}>
               <div className="w-px" style={{ height: 8, background: '#c8f55a' }} />
               <span className="text-xs text-drrop-muted leading-none">or</span>
               <div className="w-px" style={{ height: 8, background: '#c8f55a' }} />
             </div>
-            <div className="flex-1" />
           </div>
 
           {/* Step 2b */}
           <div className="flex items-center gap-4">
-            <StepCircle label="2b" />
+            <StepBadge label="Step 2b" />
             <button
               onClick={() => { setUploadGateModal(false); openAuthPopup('google_ads') }}
               className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
@@ -1246,7 +1242,7 @@ export default function UploadZone({
 
           {/* Step 3 */}
           <div className="flex items-center gap-4">
-            <StepCircle label="3" />
+            <StepBadge label="Step 3" />
             <button
               onClick={() => { setUploadGateModal(false); openAuthPopup('sheets') }}
               className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
