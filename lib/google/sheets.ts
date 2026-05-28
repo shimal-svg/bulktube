@@ -8,6 +8,7 @@ const HEADERS = [
   "Title",
   "Orientation",
   "Duration",
+  "Duration (seconds)",
   "Privacy",
   "Video ID",
   "YouTube URL",
@@ -15,11 +16,12 @@ const HEADERS = [
 ];
 
 export interface UploadRowData {
-  uploadDate: string; // YYYYDDMM
+  uploadDate: string; // YYYY-MM-DD ISO 8601
   filename: string;
   title: string;
   orientation: string | null;
-  duration: number | null; // seconds
+  duration: number | null; // seconds (human-readable column)
+  durationSeconds: number | null; // seconds (raw integer column)
   privacy: string;
   videoId: string;
   youtubeUrl: string;
@@ -133,6 +135,7 @@ export async function appendUploadRow(
     row.title,
     row.orientation ?? "",
     formatDuration(row.duration),
+    row.durationSeconds ?? "",
     row.privacy,
     row.videoId,
     row.youtubeUrl,
@@ -144,7 +147,7 @@ export async function appendUploadRow(
   const res = await fetch(
     `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(
       SHEET_TAB + "!A1"
-    )}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,
+    )}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
     {
       method: "POST",
       headers: {

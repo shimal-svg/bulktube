@@ -133,11 +133,12 @@ export async function POST(request: Request) {
           const dd = String(createdAt.getUTCDate()).padStart(2, "0");
           const mm = String(createdAt.getUTCMonth() + 1).padStart(2, "0");
           await appendUploadRow(sheetId, accessToken, {
-            uploadDate: `${yyyy}${dd}${mm}`,
+            uploadDate: `${yyyy}-${mm}-${dd}`,
             filename: uploadRecord.filename,
             title: uploadRecord.title,
             orientation: uploadRecord.orientation,
             duration: uploadRecord.duration,
+            durationSeconds: uploadRecord.duration,
             privacy: uploadRecord.privacy,
             videoId: youtubeVideoId,
             youtubeUrl: `https://youtu.be/${youtubeVideoId}`,

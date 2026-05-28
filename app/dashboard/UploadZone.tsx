@@ -741,6 +741,28 @@ export default function UploadZone({
 
         {/* ── MIDDLE — Batch Settings ─────────────────────────────────── */}
         <div className="space-y-4">
+          {/* Naming convention pills */}
+          <div className="rounded-xl border border-drrop-border bg-surface px-5 py-4">
+            <p className="text-xs font-semibold text-drrop-muted uppercase tracking-wide mb-3">
+              Auto-generated title
+            </p>
+            <div className="flex flex-wrap items-center gap-1 mb-2.5">
+              <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(200,245,90,0.12)', color: '#c8f55a' }}>SummerCampaign_v3</span>
+              <span className="text-drrop-border text-xs">_</span>
+              <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(255,107,53,0.12)', color: '#ff6b35' }}>portrait</span>
+              <span className="text-drrop-border text-xs">_</span>
+              <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(167,139,250,0.12)', color: '#a78bfa' }}>0m30s</span>
+              <span className="text-drrop-border text-xs">_</span>
+              <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(56,189,248,0.12)', color: '#38bdf8' }}>2025-06-01</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(200,245,90,0.08)', color: '#c8f55a' }}>filename</span>
+              <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(255,107,53,0.08)', color: '#ff6b35' }}>orientation</span>
+              <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(167,139,250,0.08)', color: '#a78bfa' }}>duration</span>
+              <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(56,189,248,0.08)', color: '#38bdf8' }}>upload date</span>
+            </div>
+          </div>
+
           <div className="rounded-xl border border-drrop-border bg-surface px-5 py-5 space-y-4">
             <p className="text-xs font-semibold text-drrop-muted uppercase tracking-wide">
               Batch settings

@@ -547,7 +547,7 @@ export default function LandingPage() {
             <span className="chunk-sep">_</span>
             <span className="naming-chunk chunk-orient">9x16</span>
             <span className="chunk-sep">_</span>
-            <span className="naming-chunk chunk-duration">0:30</span>
+            <span className="naming-chunk chunk-duration">0m30s</span>
             <span className="chunk-sep">_</span>
             <span className="naming-chunk chunk-date">2025-06-01</span>
           </div>
