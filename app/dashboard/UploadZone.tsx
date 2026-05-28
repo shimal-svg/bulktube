@@ -764,12 +764,7 @@ export default function UploadZone({
                           </div>
                         )}
                         <p className="text-xs text-drrop-muted mt-0.5 truncate">
-                          {item.file.name}
-                          {item.orientation ? ` · ${item.orientation}` : ''}
-                          {item.duration != null ? ` · ${formatDuration(item.duration)}` : ''}
-                          {batchSettings.titleSuffix && item.uploadStatus !== 'success'
-                            ? ` · _${batchSettings.titleSuffix}`
-                            : ''}
+                          File: {item.file.name}
                         </p>
                       </div>
 
