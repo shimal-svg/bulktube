@@ -288,36 +288,14 @@ function ColoredTitle({ item, suffix }: { item: VideoItem; suffix: string }) {
   )
 }
 
-// ─── Modal step helpers ──────────────────────────────────────────────────────
-
-function StepBadge({ label }: { label: string }) {
-  return (
-    <div
-      className="inline-flex items-center justify-center rounded-lg text-drrop font-bold shrink-0 text-sm"
-      style={{ background: '#c8f55a', padding: '6px 12px' }}
-    >
-      {label}
-    </div>
-  )
-}
-
-function StepConnector() {
-  return (
-    <div style={{ paddingLeft: 40 }}>
-      <div className="w-px" style={{ height: 14, background: '#c8f55a' }} />
-    </div>
-  )
-}
 
 // ─── component ──────────────────────────────────────────────────────────────
 
 export default function UploadZone({
-  isAuthenticated,
   channelName,
   channelThumbnail,
   sheetsUrl,
 }: {
-  isAuthenticated: boolean
   channelName?: string | null
   channelThumbnail?: string | null
   sheetsUrl?: string | null
@@ -349,15 +327,12 @@ export default function UploadZone({
   const [selectedAdsAccount, setSelectedAdsAccount] = useState<AdsAccount | null>(null)
   const [adsOAuthDone, setAdsOAuthDone] = useState(false)
 
-  // ── Sheets state ────────────────────────────────────────────────────────
-  const [sheetsOAuthDone, setSheetsOAuthDone] = useState(false)
-
   // ── modal / edit state ──────────────────────────────────────────────────
   const [uploadGateModal, setUploadGateModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
   // ── popup OAuth ─────────────────────────────────────────────────────────
-  function openAuthPopup(service: 'login' | 'youtube' | 'google_ads' | 'sheets') {
+  function openAuthPopup(service: 'youtube' | 'google_ads') {
     // /auth/callback/initiate is public (matches /auth/callback in proxy PUBLIC_PATHS).
     // It builds the Google OAuth URL server-side and redirects the popup there.
     window.open(
@@ -373,32 +348,15 @@ export default function UploadZone({
       if (e.origin !== window.location.origin) return
       if (e.data?.type !== 'oauth_complete') return
       const { service } = e.data as { service: string }
-      if (service === 'youtube') {
-        setSheetsOAuthDone(true)
-        localStorage.setItem('drrop_sheets_oauth_done', 'true')
-      }
       if (service === 'google_ads') {
         setAdsOAuthDone(true)
         localStorage.setItem('drrop_ads_oauth_done', 'true')
-      }
-      if (service === 'sheets') {
-        setSheetsOAuthDone(true)
-        localStorage.setItem('drrop_sheets_oauth_done', 'true')
       }
       router.refresh()
     }
     window.addEventListener('message', handleMessage)
     return () => window.removeEventListener('message', handleMessage)
   }, [router])
-
-  useEffect(() => {
-    function handleSignOut() {
-      setAdsOAuthDone(false)
-      setSheetsOAuthDone(false)
-    }
-    window.addEventListener('drrop:signout', handleSignOut)
-    return () => window.removeEventListener('drrop:signout', handleSignOut)
-  }, [])
 
   // ── load persisted preferences on mount ────────────────────────────────
   useEffect(() => {
@@ -412,7 +370,6 @@ export default function UploadZone({
     }
 
     if (localStorage.getItem('drrop_ads_oauth_done') === 'true') setAdsOAuthDone(true)
-    if (localStorage.getItem('drrop_sheets_oauth_done') === 'true') setSheetsOAuthDone(true)
   }, [])
 
   // ── destination toggle handlers ─────────────────────────────────────────
@@ -461,7 +418,7 @@ export default function UploadZone({
   }
 
   // ── destination disconnect ──────────────────────────────────────────────
-  async function handleDisconnect(service: 'youtube' | 'google_ads' | 'sheets') {
+  async function handleDisconnect(service: 'youtube' | 'google_ads') {
     await fetch('/api/user/disconnect', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -477,10 +434,6 @@ export default function UploadZone({
       setUploadToGoogleAds(false)
       ;['drrop_ads_customer_id', 'drrop_ads_customer_name', 'drrop_ads_enabled', 'drrop_ads_oauth_done'].forEach(k => localStorage.removeItem(k))
     }
-    if (service === 'sheets') {
-      setSheetsOAuthDone(false)
-      localStorage.removeItem('drrop_sheets_oauth_done')
-    }
     router.refresh()
   }
 
@@ -488,7 +441,6 @@ export default function UploadZone({
   const youtubeConnected = !!channelName
   const adsConnected = !!selectedAdsAccount
   const showAdsAccountPicker = adsOAuthDone || adsConnected
-  const sheetsConnected = sheetsOAuthDone || !!sheetsUrl
   const activeDestinations = (uploadToYouTube ? 1 : 0) + (uploadToGoogleAds ? 1 : 0)
   const creditCount = items.length * activeDestinations
   const filteredAdsAccounts = adsAccounts.filter(
@@ -1146,38 +1098,22 @@ export default function UploadZone({
 
           {/* Google Sheets card */}
           <div className="rounded-xl border border-drrop-border bg-surface px-5 py-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <SheetsIcon />
-                <span className="text-sm font-semibold text-drrop-text">Google Sheets</span>
-                <Tooltip text="After each upload, a row is appended to your Google Sheet with the video title, ID, URL, and metadata. The sheet is created automatically on first upload." />
-              </div>
-              {sheetsConnected && (
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-lime font-medium">Connected</span>
-                  <span className="text-xs text-drrop-muted">|</span>
-                  <button onClick={() => handleDisconnect('sheets')} className="text-xs text-drrop-muted hover:text-red-400 transition">Sign out</button>
-                </div>
-              )}
+            <div className="flex items-center gap-2 mb-4">
+              <SheetsIcon />
+              <span className="text-sm font-semibold text-drrop-text">Google Sheets</span>
+              <Tooltip text="After each upload, a row is appended to your Google Sheet with the video title, ID, URL, and metadata. The sheet is created automatically on first upload." />
             </div>
-
-            {sheetsConnected ? (
-              <div className="space-y-2">
-                {sheetsUrl ? (
-                  <a
-                    href={sheetsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-lime hover:underline"
-                  >
-                    View Sheet →
-                  </a>
-                ) : (
-                  <p className="text-sm text-drrop-muted">Sheet will be created on first upload.</p>
-                )}
-              </div>
+            {sheetsUrl ? (
+              <a
+                href={sheetsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-lime hover:underline"
+              >
+                View Sheet →
+              </a>
             ) : (
-              <p className="text-sm text-drrop-muted">Included with YouTube connection.</p>
+              <p className="text-sm text-drrop-muted">Your Google Sheet will be created on first upload.</p>
             )}
           </div>
 
@@ -1189,63 +1125,26 @@ export default function UploadZone({
         <h2 className="font-display font-bold text-lg tracking-[-0.03em] text-drrop-text mb-5">
           Connect a destination to upload
         </h2>
-
-        {/* Steps — one row per step, line segments between them */}
-        <div>
-          {/* Step 1 */}
-          <div className="flex items-center gap-4">
-            <StepBadge label="Step 1" />
-            {!isAuthenticated ? (
-              <button
-                onClick={() => { setUploadGateModal(false); openAuthPopup('login') }}
-                className="flex-1 rounded-lg px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
-                style={{ backgroundColor: '#4285F4' }}
-              >
-                Sign in with Google
-              </button>
-            ) : (
-              <div className="flex-1 rounded-lg px-4 py-2.5 text-sm font-bold text-center text-white" style={{ backgroundColor: '#4285F4', opacity: 0.4 }}>
-                Signed in ✓
-              </div>
-            )}
+        <div className="space-y-3">
+          <button
+            onClick={() => { setUploadGateModal(false); openAuthPopup('youtube') }}
+            className="w-full rounded-lg px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+            style={{ backgroundColor: '#FF0000' }}
+          >
+            Connect YouTube
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-drrop-border" />
+            <span className="text-xs text-drrop-muted">or</span>
+            <div className="flex-1 h-px bg-drrop-border" />
           </div>
-
-          {/* Connector 1 → 2a */}
-          <StepConnector />
-
-          {/* Step 2a */}
-          <div className="flex items-center gap-4">
-            <StepBadge label="Step 2a" />
-            <button
-              onClick={() => { setUploadGateModal(false); openAuthPopup('youtube') }}
-              className="flex-1 rounded-lg px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
-              style={{ backgroundColor: '#FF0000' }}
-            >
-              Connect YouTube
-            </button>
-          </div>
-
-          {/* Connector 2a → 2b with "or" */}
-          <div style={{ paddingLeft: 28 }}>
-            <div className="flex flex-col items-center" style={{ width: 24 }}>
-              <div className="w-px" style={{ height: 8, background: '#c8f55a' }} />
-              <span className="text-xs text-drrop-muted leading-none">or</span>
-              <div className="w-px" style={{ height: 8, background: '#c8f55a' }} />
-            </div>
-          </div>
-
-          {/* Step 2b */}
-          <div className="flex items-center gap-4">
-            <StepBadge label="Step 2b" />
-            <button
-              onClick={() => { setUploadGateModal(false); openAuthPopup('google_ads') }}
-              className="flex-1 rounded-lg px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
-              style={{ background: 'linear-gradient(135deg, #4285F4, #34A853, #FBBC05)' }}
-            >
-              Connect Google Ads
-            </button>
-          </div>
-
+          <button
+            onClick={() => { setUploadGateModal(false); openAuthPopup('google_ads') }}
+            className="w-full rounded-lg px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+            style={{ background: 'linear-gradient(135deg, #4285F4, #34A853, #FBBC05)' }}
+          >
+            Connect Google Ads
+          </button>
         </div>
       </Modal>
     </>

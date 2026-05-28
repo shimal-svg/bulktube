@@ -1,27 +1,24 @@
 import { NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
 
-const SCOPES: Record<string, string> = {
-  login: "openid email profile",
-  youtube: "openid email profile https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/drive.file",
-  google_ads: "openid email https://www.googleapis.com/auth/adwords",
-  sheets: "openid email https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file",
+const SERVICE_SCOPES: Record<string, string> = {
+  youtube: "https://www.googleapis.com/auth/youtube https://www.googleapis.com/auth/drive.file",
+  google_ads: "https://www.googleapis.com/auth/adwords https://www.googleapis.com/auth/drive.file",
 }
 
 const CALLBACK_PATH: Record<string, string> = {
-  login: "login",
   youtube: "youtube",
   google_ads: "google-ads",
-  sheets: "sheets",
 }
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const service = searchParams.get("service") ?? ""
 
-  const scopes = SCOPES[service]
+  const serviceScopes = SERVICE_SCOPES[service]
   const callbackPath = CALLBACK_PATH[service]
 
-  if (!scopes || !callbackPath) {
+  if (!serviceScopes || !callbackPath) {
     return new Response("Invalid service", { status: 400 })
   }
 
@@ -30,11 +27,18 @@ export async function GET(request: Request) {
     return new Response("GOOGLE_CLIENT_ID not configured", { status: 500 })
   }
 
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const scope = user
+    ? serviceScopes
+    : `openid email profile ${serviceScopes}`
+
   const params = new URLSearchParams({
     client_id: clientId,
     redirect_uri: `${origin}/auth/callback/${callbackPath}`,
     response_type: "code",
-    scope: scopes,
+    scope,
     access_type: "offline",
     prompt: "consent",
     state: service,

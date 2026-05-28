@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Syne, Inter } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 
 const syne = Syne({
@@ -35,7 +34,6 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-drrop text-drrop-text">
         {children}
-        <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
       </body>
     </html>
   );

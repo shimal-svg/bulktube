@@ -1,3 +1,4 @@
+import { createClient } from "@/lib/supabase/server"
 import { createCallbackClient, popupResponse } from "@/lib/auth/popup-response"
 import { exchangeGoogleCode } from "@/lib/google/direct-oauth"
 import { saveGoogleTokens } from "@/lib/google/token"
@@ -16,20 +17,29 @@ export async function GET(request: Request) {
   try {
     const tokens = await exchangeGoogleCode(code, `${origin}/auth/callback/youtube`)
 
-    const supabase = createCallbackClient(request, pendingCookies)
-    const { data, error } = await supabase.auth.signInWithIdToken({
-      provider: "google",
-      token: tokens.id_token,
-    })
+    let userId: string
 
-    if (error || !data?.user) {
-      return popupResponse({ type: "oauth_complete", service: "youtube", error: error?.message ?? "Auth failed" }, pendingCookies)
+    if (tokens.id_token) {
+      const supabase = createCallbackClient(request, pendingCookies)
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: "google",
+        token: tokens.id_token,
+      })
+      if (error || !data?.user) {
+        return popupResponse({ type: "oauth_complete", service: "youtube", error: error?.message ?? "Auth failed" }, pendingCookies)
+      }
+      userId = data.user.id
+    } else {
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        return popupResponse({ type: "oauth_complete", service: "youtube", error: "No session" }, pendingCookies)
+      }
+      userId = user.id
     }
 
-    const userId = data.user.id
     await saveGoogleTokens(userId, tokens.access_token, tokens.refresh_token, tokens.expires_in)
 
-    // Auto-save primary YouTube channel
     try {
       const ytRes = await fetch(
         "https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true",

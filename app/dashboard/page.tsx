@@ -110,7 +110,6 @@ export default async function DashboardPage({
         {!user && <div className="mb-8" />}
 
         <UploadZone
-          isAuthenticated={!!user}
           channelName={userData?.active_youtube_channel_name}
           channelThumbnail={userData?.active_youtube_channel_thumbnail}
           sheetsUrl={userData?.google_sheets_url}

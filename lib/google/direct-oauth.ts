@@ -7,7 +7,7 @@ export async function exchangeGoogleCode(
 ): Promise<{
   access_token: string
   refresh_token?: string
-  id_token: string
+  id_token?: string
   expires_in: number
 }> {
   const params = new URLSearchParams({

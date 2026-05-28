@@ -1,0 +1,14 @@
+<svg width="240" height="240" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+  <rect width="240" height="240" fill="#0d0d0d" rx="40"/>
+  <text
+    x="120"
+    y="148"
+    font-family="'Syne', 'Arial Black', sans-serif"
+    font-weight="800"
+    font-size="56"
+    text-anchor="middle"
+    letter-spacing="-2"
+  >
+    <tspan fill="#c8f55a">d</tspan><tspan fill="#ff6b35">r</tspan><tspan fill="#a78bfa">r</tspan><tspan fill="#c8f55a">op.io</tspan>
+  </text>
+</svg>
