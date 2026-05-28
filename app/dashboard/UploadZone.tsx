@@ -979,7 +979,7 @@ export default function UploadZone({
             <button
               onClick={startUpload}
               disabled={anyLoading || batchUploading}
-              className="w-full rounded-full bg-lime text-drrop px-4 py-3 text-sm font-bold tracking-[-0.02em] hover:bg-[#d9ff6a] transition disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full rounded-lg bg-lime text-drrop px-4 py-3 text-sm font-bold tracking-[-0.02em] hover:bg-[#d9ff6a] transition disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {anyLoading
                 ? 'Reading metadata…'
@@ -1189,13 +1189,13 @@ export default function UploadZone({
             {!isAuthenticated ? (
               <button
                 onClick={() => { setUploadGateModal(false); openAuthPopup('login') }}
-                className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+                className="flex-1 rounded-lg px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
                 style={{ backgroundColor: '#4285F4' }}
               >
                 Sign in with Google
               </button>
             ) : (
-              <div className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold text-center text-white" style={{ backgroundColor: '#4285F4', opacity: 0.4 }}>
+              <div className="flex-1 rounded-lg px-4 py-2.5 text-sm font-bold text-center text-white" style={{ backgroundColor: '#4285F4', opacity: 0.4 }}>
                 Signed in ✓
               </div>
             )}
@@ -1209,7 +1209,7 @@ export default function UploadZone({
             <StepBadge label="Step 2a" />
             <button
               onClick={() => { setUploadGateModal(false); openAuthPopup('youtube') }}
-              className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+              className="flex-1 rounded-lg px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
               style={{ backgroundColor: '#FF0000' }}
             >
               Connect YouTube
@@ -1230,7 +1230,7 @@ export default function UploadZone({
             <StepBadge label="Step 2b" />
             <button
               onClick={() => { setUploadGateModal(false); openAuthPopup('google_ads') }}
-              className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+              className="flex-1 rounded-lg px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
               style={{ background: 'linear-gradient(135deg, #4285F4, #34A853, #FBBC05)' }}
             >
               Connect Google Ads
@@ -1245,7 +1245,7 @@ export default function UploadZone({
             <StepBadge label="Step 3" />
             <button
               onClick={() => { setUploadGateModal(false); openAuthPopup('sheets') }}
-              className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+              className="flex-1 rounded-lg px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
               style={{ backgroundColor: '#0F9D58' }}
             >
               Connect Google Sheets

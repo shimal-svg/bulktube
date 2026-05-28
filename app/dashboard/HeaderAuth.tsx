@@ -35,7 +35,7 @@ export default function HeaderAuth({
   return (
     <button
       onClick={openLoginPopup}
-      className="rounded-full px-4 py-2 text-sm font-bold text-white transition hover:opacity-90"
+      className="rounded-lg px-4 py-2 text-sm font-bold text-white transition hover:opacity-90"
       style={{ backgroundColor: '#4285F4' }}
     >
       Sign in
