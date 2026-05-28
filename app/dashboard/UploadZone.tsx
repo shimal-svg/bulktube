@@ -183,6 +183,19 @@ function Modal({
   )
 }
 
+// ─── Tooltip ────────────────────────────────────────────────────────────────
+
+function Tooltip({ text }: { text: string }) {
+  return (
+    <span className="relative group cursor-help inline-flex">
+      <span className="text-drrop-border text-xs select-none leading-none">ⓘ</span>
+      <span className="pointer-events-none absolute bottom-full right-0 mb-2 w-64 rounded-lg border border-drrop-border bg-[#111111] px-3 py-2.5 text-xs text-drrop-muted shadow-2xl z-30 leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity">
+        {text}
+      </span>
+    </span>
+  )
+}
+
 // ─── Icons ──────────────────────────────────────────────────────────────────
 
 function YouTubeIcon() {
@@ -615,6 +628,12 @@ export default function UploadZone({
 
         {/* ── LEFT — Video Import ─────────────────────────────────────── */}
         <div className="space-y-4">
+          <h2 className="font-display font-bold text-lg tracking-[-0.03em]">
+            <span className="text-lime">d</span>
+            <span className="text-drrop-orange">r</span>
+            <span className="text-drrop-purple">r</span>
+            <span className="text-lime">op</span>
+          </h2>
           <div
             onDrop={handleDrop}
             onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
@@ -741,6 +760,9 @@ export default function UploadZone({
 
         {/* ── MIDDLE — Batch Settings ─────────────────────────────────── */}
         <div className="space-y-4">
+          <h2 className="font-display font-bold text-lg tracking-[-0.03em] text-lime">
+            batch settings
+          </h2>
           {/* Naming convention pills */}
           <div className="rounded-xl border border-drrop-border bg-surface px-5 py-4">
             <p className="text-xs font-semibold text-drrop-muted uppercase tracking-wide mb-3">
@@ -866,6 +888,9 @@ export default function UploadZone({
 
         {/* ── RIGHT — Destinations ────────────────────────────────────── */}
         <div className="space-y-4">
+          <h2 className="font-display font-bold text-lg tracking-[-0.03em] text-lime">
+            connected destinations
+          </h2>
 
           {/* YouTube card */}
           <div className="rounded-xl border border-drrop-border bg-surface px-5 py-5">
@@ -873,6 +898,7 @@ export default function UploadZone({
               <div className="flex items-center gap-2">
                 <YouTubeIcon />
                 <span className="text-sm font-semibold text-drrop-text">YouTube</span>
+                <Tooltip text="Upload directly to your YouTube channel. Videos will appear publicly or privately based on your batch settings. View counts and engagement go to your channel. A Google Sheet with all video IDs and URLs will be provided." />
               </div>
               {youtubeConnected && (
                 <span className="text-xs text-lime font-medium">Connected</span>
@@ -908,7 +934,8 @@ export default function UploadZone({
                 <p className="text-sm text-drrop-muted">No YouTube channel connected.</p>
                 <button
                   onClick={() => isAuthenticated ? setConnectModal('youtube') : connectService('youtube')}
-                  className="w-full rounded-lg border border-drrop-border bg-drrop px-4 py-2 text-sm font-medium text-drrop-text hover:border-lime hover:text-lime transition"
+                  className="w-full rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+                  style={{ backgroundColor: '#FF0000' }}
                 >
                   Connect YouTube
                 </button>
@@ -922,6 +949,7 @@ export default function UploadZone({
               <div className="flex items-center gap-2">
                 <GoogleAdsIcon />
                 <span className="text-sm font-semibold text-drrop-text">Google Ads</span>
+                <Tooltip text="Upload directly to Asset Studio — no YouTube channel required. Videos will appear in selected Google Ads account. A Google Sheet with all IDs will be provided." />
               </div>
               {adsConnected && (
                 <span className="text-xs text-lime font-medium">Connected</span>
@@ -985,7 +1013,8 @@ export default function UploadZone({
               ) : (
                 <button
                   onClick={() => isAuthenticated ? setConnectModal('ads') : connectService('ads')}
-                  className="w-full rounded-lg border border-drrop-border bg-drrop px-4 py-2 text-sm font-medium text-drrop-text hover:border-lime hover:text-lime transition"
+                  className="w-full rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+                  style={{ background: 'linear-gradient(135deg, #4285F4, #34A853, #FBBC05, #EA4335)' }}
                 >
                   Connect Google Ads
                 </button>
@@ -1011,13 +1040,15 @@ export default function UploadZone({
           <div className="flex gap-3">
             <button
               onClick={() => { setUploadGateModal(false); connectService('youtube') }}
-              className="flex-1 rounded-full bg-lime text-drrop px-4 py-2.5 text-sm font-bold tracking-[-0.02em] hover:bg-[#d9ff6a] transition"
+              className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+              style={{ backgroundColor: '#FF0000' }}
             >
               Connect YouTube
             </button>
             <button
               onClick={() => { setUploadGateModal(false); connectService('ads') }}
-              className="flex-1 rounded-full border border-drrop-border bg-drrop text-drrop-text px-4 py-2.5 text-sm font-medium hover:border-lime hover:text-lime transition"
+              className="flex-1 rounded-full px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
+              style={{ background: 'linear-gradient(135deg, #4285F4, #34A853, #FBBC05, #EA4335)' }}
             >
               Connect Ads
             </button>
