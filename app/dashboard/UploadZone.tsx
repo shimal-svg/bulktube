@@ -830,37 +830,37 @@ export default function UploadZone({
             </p>
             <div className="flex flex-wrap items-end gap-x-1.5 gap-y-3">
               <div className="flex flex-col items-start gap-1.5">
-                <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(200,245,90,0.08)', color: '#c8f55a' }}>filename</span>
-                <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(200,245,90,0.12)', color: '#c8f55a' }}>SummerCampaign_v3</span>
+                <span className="px-2 py-0.5 rounded-md text-xs" style={{ background: 'rgba(200,245,90,0.08)', color: '#c8f55a' }}>filename</span>
+                <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ background: 'rgba(200,245,90,0.12)', color: '#c8f55a' }}>SummerCampaign_v3</span>
               </div>
                             <div className="flex flex-col items-start gap-1.5">
-                <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(255,107,53,0.08)', color: '#ff6b35' }}>orientation</span>
-                <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(255,107,53,0.12)', color: '#ff6b35' }}>portrait</span>
+                <span className="px-2 py-0.5 rounded-md text-xs" style={{ background: 'rgba(255,107,53,0.08)', color: '#ff6b35' }}>orientation</span>
+                <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ background: 'rgba(255,107,53,0.12)', color: '#ff6b35' }}>portrait</span>
               </div>
                             <div className="flex flex-col items-start gap-1.5">
-                <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(167,139,250,0.08)', color: '#a78bfa' }}>duration</span>
-                <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(167,139,250,0.12)', color: '#a78bfa' }}>0m30s</span>
+                <span className="px-2 py-0.5 rounded-md text-xs" style={{ background: 'rgba(167,139,250,0.08)', color: '#a78bfa' }}>duration</span>
+                <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ background: 'rgba(167,139,250,0.12)', color: '#a78bfa' }}>0m30s</span>
               </div>
                             <div className="flex flex-col items-start gap-1.5">
-                <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(56,189,248,0.08)', color: '#38bdf8' }}>upload date</span>
-                <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(56,189,248,0.12)', color: '#38bdf8' }}>2025-06-01</span>
+                <span className="px-2 py-0.5 rounded-md text-xs" style={{ background: 'rgba(56,189,248,0.08)', color: '#38bdf8' }}>upload date</span>
+                <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ background: 'rgba(56,189,248,0.12)', color: '#38bdf8' }}>2025-06-01</span>
               </div>
               {batchSettings.titleSuffix && (
                 <>
                                     <div className="flex flex-col items-start gap-1.5">
-                    <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}>suffix</span>
-                    <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(255,255,255,0.08)', color: '#ffffff' }}>{batchSettings.titleSuffix}</span>
+                    <span className="px-2 py-0.5 rounded-md text-xs" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}>suffix</span>
+                    <span className="px-2 py-0.5 rounded-md text-xs font-medium" style={{ background: 'rgba(255,255,255,0.08)', color: '#ffffff' }}>{batchSettings.titleSuffix}</span>
                   </div>
                 </>
               )}
             </div>
-            <p className="text-sm text-drrop-muted">Filename: DSCF6710.MOV</p>
-            <div className="mt-2">
+            <div className="space-y-1.5 mt-2">
+              <p className="text-xs text-drrop-muted">Title suffix</p>
               <input
                 type="text"
                 value={batchSettings.titleSuffix}
                 onChange={e => setBatchSettings(s => ({ ...s, titleSuffix: e.target.value }))}
-                placeholder="e.g. sponsored_may2026"
+                placeholder="appended on upload"
                 className="w-full text-sm px-2.5 py-1.5 rounded-md border border-drrop-border focus:border-lime focus:outline-none bg-drrop text-drrop-text placeholder:text-drrop-muted"
               />
             </div>
