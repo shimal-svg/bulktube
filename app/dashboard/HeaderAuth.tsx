@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 type GsiNotification = {
@@ -18,6 +18,7 @@ declare global {
           initialize(config: {
             client_id: string
             auto_select: boolean
+            nonce?: string
             callback: (response: { credential: string }) => void
           }): void
           prompt(callback?: (notification: GsiNotification) => void): void
@@ -37,6 +38,7 @@ export default function HeaderAuth({
 }) {
   const router = useRouter()
   const [oneTapVisible, setOneTapVisible] = useState(false)
+  const rawNonceRef = useRef<string | null>(null)
 
   async function handleCredential(response: { credential: string }) {
     console.log('[OneTap] ✅ CALLBACK FIRED, credential length:', response?.credential?.length)
@@ -45,7 +47,7 @@ export default function HeaderAuth({
       const res = await fetch('/auth/callback/one-tap', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ credential: response.credential }),
+        body: JSON.stringify({ credential: response.credential, nonce: rawNonceRef.current }),
       })
       const body = await res.json()
       console.log('[OneTap] server response:', res.status, body)
@@ -66,12 +68,13 @@ export default function HeaderAuth({
     let cancelled = false
     let timerId: ReturnType<typeof setInterval> | null = null
 
-    function init() {
+    function init(hashedNonce: string) {
       if (cancelled) return
       console.log('[OneTap] initialize, client_id:', process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID)
       window.google!.accounts.id.initialize({
         client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
         auto_select: true,
+        nonce: hashedNonce,
         callback: handleCredential,
       })
       console.log('[OneTap] prompt()')
@@ -87,20 +90,33 @@ export default function HeaderAuth({
       })
     }
 
-    if (window.google?.accounts?.id) {
-      console.log('[OneTap] GSI already loaded')
-      init()
-    } else {
-      console.log('[OneTap] waiting for GSI script...')
-      timerId = setInterval(() => {
-        if (window.google?.accounts?.id) {
-          clearInterval(timerId!)
-          timerId = null
-          console.log('[OneTap] GSI loaded (polled)')
-          init()
-        }
-      }, 50)
+    async function setup() {
+      // Generate nonce: random bytes → hex raw, SHA-256 → hex hashed
+      const bytes = crypto.getRandomValues(new Uint8Array(32))
+      const raw = Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('')
+      const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw))
+      const hashed = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('')
+      rawNonceRef.current = raw
+
+      if (cancelled) return
+
+      if (window.google?.accounts?.id) {
+        console.log('[OneTap] GSI already loaded')
+        init(hashed)
+      } else {
+        console.log('[OneTap] waiting for GSI script...')
+        timerId = setInterval(() => {
+          if (window.google?.accounts?.id) {
+            clearInterval(timerId!)
+            timerId = null
+            console.log('[OneTap] GSI loaded (polled)')
+            init(hashed)
+          }
+        }, 50)
+      }
     }
+
+    setup()
 
     return () => {
       cancelled = true

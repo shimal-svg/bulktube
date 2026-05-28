@@ -4,7 +4,7 @@ import { createCallbackClient } from "@/lib/auth/popup-response"
 type PendingCookie = { name: string; value: string; options: Record<string, unknown> }
 
 export async function POST(request: Request) {
-  const { credential } = await request.json()
+  const { credential, nonce } = await request.json()
 
   if (!credential) {
     return NextResponse.json({ error: "No credential" }, { status: 400 })
@@ -16,6 +16,7 @@ export async function POST(request: Request) {
   const { data, error } = await supabase.auth.signInWithIdToken({
     provider: "google",
     token: credential,
+    nonce: nonce ?? undefined,
   })
 
   if (error || !data?.user) {
