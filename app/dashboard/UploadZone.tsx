@@ -42,7 +42,7 @@ function formatUploadDate(): string {
   const yyyy = now.getFullYear()
   const dd = String(now.getDate()).padStart(2, '0')
   const mm = String(now.getMonth() + 1).padStart(2, '0')
-  return `${yyyy}${dd}${mm}`
+  return `${yyyy}-${mm}-${dd}`
 }
 
 function formatDuration(seconds: number): string {
@@ -236,7 +236,7 @@ function ColoredTitle({ item, suffix }: { item: VideoItem; suffix: string }) {
     return (
       <>
         <span className="text-drrop-text">{item.title}</span>
-        {suffix && <><span className="text-drrop-border">_</span><span className="text-white">{suffix}</span></>}
+        {suffix && <><span className="text-white">_</span><span className="text-white">{suffix}</span></>}
       </>
     )
   }
@@ -246,7 +246,7 @@ function ColoredTitle({ item, suffix }: { item: VideoItem; suffix: string }) {
     return (
       <>
         <span style={{ color: '#c8f55a' }}>{item.title}</span>
-        {suffix && <><span className="text-drrop-border">_</span><span className="text-white">{suffix}</span></>}
+        {suffix && <><span className="text-white">_</span><span className="text-white">{suffix}</span></>}
       </>
     )
   }
@@ -259,15 +259,15 @@ function ColoredTitle({ item, suffix }: { item: VideoItem; suffix: string }) {
   return (
     <>
       <span style={{ color: '#c8f55a' }}>{fileStr}</span>
-      <span className="text-drrop-border">_</span>
+      <span className="text-white">_</span>
       <span style={{ color: '#ff6b35' }}>{orientStr}</span>
-      <span className="text-drrop-border">_</span>
+      <span className="text-white">_</span>
       <span style={{ color: '#a78bfa' }}>{durStr}</span>
-      <span className="text-drrop-border">_</span>
+      <span className="text-white">_</span>
       <span style={{ color: '#38bdf8' }}>{dateStr}</span>
       {suffix && (
         <>
-          <span className="text-drrop-border">_</span>
+          <span className="text-white">_</span>
           <span className="text-white">{suffix}</span>
         </>
       )}
@@ -714,7 +714,7 @@ export default function UploadZone({
                 ? 'Maximum 20 videos reached'
                 : 'Drag & drop videos here, or click to select'}
             </p>
-            <p className="text-drrop-border text-xs mt-1">{items.length} / 20 videos</p>
+            <p className="text-drrop-muted text-xs mt-1">{items.length} / 20 videos</p>
           </div>
 
           {items.length > 0 && (
@@ -797,7 +797,7 @@ export default function UploadZone({
                             setItems(prev => prev.filter(i => i.id !== item.id))
                           }
                           aria-label="Remove"
-                          className="shrink-0 text-drrop-border hover:text-red-400 transition text-xs leading-none"
+                          className="shrink-0 text-drrop-muted hover:text-red-400 transition text-xs leading-none"
                         >
                           ✕
                         </button>
@@ -838,24 +838,24 @@ export default function UploadZone({
                 <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(200,245,90,0.08)', color: '#c8f55a' }}>filename</span>
                 <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(200,245,90,0.12)', color: '#c8f55a' }}>SummerCampaign_v3</span>
               </div>
-              <span className="text-drrop-border text-xs pb-[3px]">_</span>
+              <span className="text-drrop-muted text-xs pb-[3px]">_</span>
               <div className="flex flex-col items-start gap-1.5">
                 <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(255,107,53,0.08)', color: '#ff6b35' }}>orientation</span>
                 <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(255,107,53,0.12)', color: '#ff6b35' }}>portrait</span>
               </div>
-              <span className="text-drrop-border text-xs pb-[3px]">_</span>
+              <span className="text-drrop-muted text-xs pb-[3px]">_</span>
               <div className="flex flex-col items-start gap-1.5">
                 <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(167,139,250,0.08)', color: '#a78bfa' }}>duration</span>
                 <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(167,139,250,0.12)', color: '#a78bfa' }}>0m30s</span>
               </div>
-              <span className="text-drrop-border text-xs pb-[3px]">_</span>
+              <span className="text-drrop-muted text-xs pb-[3px]">_</span>
               <div className="flex flex-col items-start gap-1.5">
                 <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(56,189,248,0.08)', color: '#38bdf8' }}>upload date</span>
                 <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(56,189,248,0.12)', color: '#38bdf8' }}>2025-06-01</span>
               </div>
               {batchSettings.titleSuffix && (
                 <>
-                  <span className="text-drrop-border text-xs pb-[3px]">_</span>
+                  <span className="text-drrop-muted text-xs pb-[3px]">_</span>
                   <div className="flex flex-col items-start gap-1.5">
                     <span className="px-2 py-0.5 rounded-full text-xs" style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}>suffix</span>
                     <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ background: 'rgba(255,255,255,0.08)', color: '#ffffff' }}>{batchSettings.titleSuffix}</span>
@@ -866,7 +866,7 @@ export default function UploadZone({
             <div className="space-y-1.5">
               <p className="text-xs text-drrop-muted">
                 Title suffix{' '}
-                <span className="text-drrop-border font-normal">appended on upload</span>
+                <span className="text-drrop-muted font-normal">appended on upload</span>
               </p>
               <input
                 type="text"
