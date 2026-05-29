@@ -184,7 +184,7 @@ export default function PricingSection({
               <div className="mt-auto pt-2">
                 {plan.id === 'agency_max' ? (
                   <a
-                    href="mailto:shimal@drrop.io"
+                    href="/inquire"
                     className="block w-full rounded-lg px-4 py-2.5 text-sm font-bold text-center border border-drrop-border text-drrop-muted hover:border-lime hover:text-lime transition"
                   >
                     Inquire
