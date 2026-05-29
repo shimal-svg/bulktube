@@ -299,6 +299,8 @@ export default function UploadZone({
   subscriptionStatus,
   monthlyUploadsUsed,
   monthlyUploadLimit,
+  freeUploadsRemaining,
+  packCreditsRemaining,
 }: {
   channelName?: string | null
   channelThumbnail?: string | null
@@ -307,6 +309,8 @@ export default function UploadZone({
   subscriptionStatus?: string | null
   monthlyUploadsUsed?: number | null
   monthlyUploadLimit?: number | null
+  freeUploadsRemaining?: number
+  packCreditsRemaining?: number
 }) {
   // ── core state ─────────────────────────────────────────────────────────
   const [items, setItems] = useState<VideoItem[]>([])
@@ -338,6 +342,7 @@ export default function UploadZone({
   // ── modal / edit state ──────────────────────────────────────────────────
   const [uploadGateModal, setUploadGateModal] = useState(false)
   const [uploadLimitModal, setUploadLimitModal] = useState(false)
+  const [noCreditModal, setNoCreditModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
   // ── popup OAuth ─────────────────────────────────────────────────────────
@@ -357,9 +362,19 @@ export default function UploadZone({
       if (e.origin !== window.location.origin) return
       if (e.data?.type !== 'oauth_complete') return
       const { service } = e.data as { service: string }
+      if (service === 'youtube') {
+        if (localStorage.getItem('drrop_yt_enabled') === null) {
+          setUploadToYouTube(true)
+          localStorage.setItem('drrop_yt_enabled', 'true')
+        }
+      }
       if (service === 'google_ads') {
         setAdsOAuthDone(true)
         localStorage.setItem('drrop_ads_oauth_done', 'true')
+        if (localStorage.getItem('drrop_ads_enabled') === null) {
+          setUploadToGoogleAds(true)
+          localStorage.setItem('drrop_ads_enabled', 'true')
+        }
       }
       router.refresh()
     }
@@ -369,8 +384,11 @@ export default function UploadZone({
 
   // ── load persisted preferences on mount ────────────────────────────────
   useEffect(() => {
-    setUploadToYouTube(localStorage.getItem('drrop_yt_enabled') === 'true')
-    setUploadToGoogleAds(localStorage.getItem('drrop_ads_enabled') === 'true')
+    const ytPref = localStorage.getItem('drrop_yt_enabled')
+    setUploadToYouTube(ytPref !== null ? ytPref === 'true' : !!channelName)
+    const adsPref = localStorage.getItem('drrop_ads_enabled')
+    const savedIdCheck = localStorage.getItem('drrop_ads_customer_id')
+    setUploadToGoogleAds(adsPref !== null ? adsPref === 'true' : !!savedIdCheck)
 
     const savedId = localStorage.getItem('drrop_ads_customer_id')
     const savedName = localStorage.getItem('drrop_ads_customer_name')
@@ -588,7 +606,7 @@ export default function UploadZone({
       const res = await fetch('/api/upload/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uploadId, youtubeVideoId }),
+        body: JSON.stringify({ uploadId, youtubeVideoId, destination: 'YouTube' }),
       })
       if (!res.ok) {
         patchItem(item.id, {
@@ -628,9 +646,14 @@ export default function UploadZone({
       return
     }
 
+    const hasActiveSub = !!(subscriptionTier && subscriptionStatus === 'active')
+    if (!hasActiveSub && (freeUploadsRemaining ?? 0) === 0 && (packCreditsRemaining ?? 0) === 0) {
+      setNoCreditModal(true)
+      return
+    }
+
     if (
-      subscriptionTier &&
-      subscriptionStatus === 'active' &&
+      hasActiveSub &&
       monthlyUploadLimit != null &&
       (monthlyUploadsUsed ?? 0) >= monthlyUploadLimit
     ) {
@@ -1153,6 +1176,23 @@ export default function UploadZone({
           style={{ backgroundColor: '#c8f55a' }}
         >
           View Plans
+        </a>
+      </Modal>
+
+      {/* ── No credit modal ──────────────────────────────────────────── */}
+      <Modal open={noCreditModal} onClose={() => setNoCreditModal(false)}>
+        <h2 className="font-display font-bold text-lg tracking-[-0.03em] text-drrop-text mb-3">
+          No credits remaining
+        </h2>
+        <p className="text-sm text-drrop-muted mb-5">
+          You don&apos;t have enough credits to upload — subscribe to continue.
+        </p>
+        <a
+          href="/credits"
+          className="block w-full rounded-lg px-4 py-2.5 text-sm font-bold text-drrop text-center transition hover:opacity-90"
+          style={{ backgroundColor: '#c8f55a' }}
+        >
+          Subscribe →
         </a>
       </Modal>
 

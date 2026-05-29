@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { uploadId, youtubeVideoId } = body;
+    const { uploadId, youtubeVideoId, destination = "YouTube" } = body;
 
     console.log("[upload/complete] uploadId:", uploadId, "| youtubeVideoId:", youtubeVideoId);
 
@@ -154,6 +154,7 @@ export async function POST(request: Request) {
             videoId: youtubeVideoId,
             youtubeUrl: `https://youtu.be/${youtubeVideoId}`,
             status: "success",
+            destination,
           });
           console.log("[upload/complete] sheet row appended");
         }

@@ -14,7 +14,7 @@ export default async function DashboardPage({
   } = await supabase.auth.getUser();
 
   const params = await searchParams;
-  const paymentSuccess  = params.payment === "success";
+  const paymentSuccess    = params.payment === "success";
   const subscribedSuccess = params.subscribed === "true";
 
   let userData: {
@@ -29,19 +29,31 @@ export default async function DashboardPage({
     monthly_uploads_used: number | null;
     monthly_upload_limit: number | null;
   } | null = null;
+  let packCreditsRemaining = 0;
 
   if (user) {
-    const { data } = await supabase
-      .from("users")
-      .select(
-        "email, free_uploads_used, free_uploads_limit, active_youtube_channel_name, active_youtube_channel_thumbnail, google_sheets_url, subscription_tier, subscription_status, monthly_uploads_used, monthly_upload_limit"
-      )
-      .eq("id", user.id)
-      .single();
-    userData = data;
+    const [userResult, packsResult] = await Promise.all([
+      supabase
+        .from("users")
+        .select(
+          "email, free_uploads_used, free_uploads_limit, active_youtube_channel_name, active_youtube_channel_thumbnail, google_sheets_url, subscription_tier, subscription_status, monthly_uploads_used, monthly_upload_limit"
+        )
+        .eq("id", user.id)
+        .single(),
+      supabase
+        .from("credit_packs")
+        .select("credits_remaining")
+        .gt("credits_remaining", 0),
+    ]);
+    userData = userResult.data;
+    packCreditsRemaining =
+      packsResult.data?.reduce(
+        (sum: number, p: { credits_remaining: number }) => sum + p.credits_remaining,
+        0
+      ) ?? 0;
   }
 
-  const freeRemaining = Math.max(
+  const freeUploadsRemaining = Math.max(
     0,
     (userData?.free_uploads_limit ?? 3) - (userData?.free_uploads_used ?? 0)
   );
@@ -76,39 +88,39 @@ export default async function DashboardPage({
 
         {user && (
           <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4">
               {hasActiveSub ? (
-                <p className="text-drrop-muted text-sm">
-                  Monthly uploads:{" "}
-                  <strong className="text-drrop-text font-semibold">
-                    {userData?.monthly_uploads_used ?? 0} / {userData?.monthly_upload_limit} used
-                  </strong>
-                </p>
+                <>
+                  <p className="text-drrop-muted text-sm">
+                    Monthly uploads:{" "}
+                    <strong className="text-drrop-text font-semibold">
+                      {userData?.monthly_uploads_used ?? 0} / {userData?.monthly_upload_limit} used
+                    </strong>
+                  </p>
+                  <Link
+                    href="/credits"
+                    className="text-sm font-medium text-drrop-muted hover:text-lime transition"
+                  >
+                    Manage plan →
+                  </Link>
+                </>
               ) : (
-                <p className="text-drrop-muted text-sm">
-                  Free uploads:{" "}
-                  <strong className="text-drrop-text font-semibold">
-                    {freeRemaining} remaining
-                  </strong>
-                </p>
+                <>
+                  <p className="text-drrop-muted text-sm">
+                    Free uploads:{" "}
+                    <strong className="text-drrop-text font-semibold">
+                      {freeUploadsRemaining} remaining
+                    </strong>
+                  </p>
+                  <Link
+                    href="/credits"
+                    className="rounded-lg bg-lime text-drrop px-3 py-1.5 text-sm font-bold hover:bg-[#d9ff6a] transition"
+                  >
+                    Subscribe →
+                  </Link>
+                </>
               )}
-              <Link
-                href="/credits"
-                className="text-sm font-medium text-drrop-muted hover:text-lime transition"
-              >
-                {hasActiveSub ? "Manage plan →" : "Upgrade →"}
-              </Link>
             </div>
-            {userData?.google_sheets_url && (
-              <a
-                href={userData.google_sheets_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm font-medium text-lime hover:text-[#d9ff6a] transition"
-              >
-                View Sheet →
-              </a>
-            )}
           </div>
         )}
 
@@ -122,6 +134,8 @@ export default async function DashboardPage({
           subscriptionStatus={userData?.subscription_status}
           monthlyUploadsUsed={userData?.monthly_uploads_used}
           monthlyUploadLimit={userData?.monthly_upload_limit}
+          freeUploadsRemaining={freeUploadsRemaining}
+          packCreditsRemaining={packCreditsRemaining}
         />
       </main>
     </div>

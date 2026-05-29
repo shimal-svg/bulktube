@@ -13,6 +13,7 @@ const HEADERS = [
   "Video ID",
   "YouTube URL",
   "Status",
+  "Destination",
 ];
 
 export interface UploadRowData {
@@ -26,6 +27,7 @@ export interface UploadRowData {
   videoId: string;
   youtubeUrl: string;
   status: string;
+  destination: string;
 }
 
 function formatDuration(seconds: number | null): string {
@@ -140,6 +142,7 @@ export async function appendUploadRow(
     row.videoId,
     row.youtubeUrl,
     row.status,
+    row.destination,
   ];
 
   console.log("[sheets/appendUploadRow] appending to sheetId:", sheetId);
