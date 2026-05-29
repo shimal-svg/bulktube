@@ -32,10 +32,9 @@ export default function HeaderAuth({
         <img src={avatar} alt={email} className="h-7 w-7 rounded-full" />
       )}
       <span className="text-sm text-drrop-subtle">{email}</span>
-      <span className="text-xs text-drrop-muted">|</span>
       <button
         onClick={handleSignOut}
-        className="text-xs text-drrop-muted hover:text-red-400 transition"
+        className="rounded-lg border border-drrop-border px-3 py-1.5 text-xs font-medium text-drrop-muted hover:text-drrop-text hover:border-drrop-subtle transition"
       >
         Sign out
       </button>
