@@ -383,7 +383,7 @@ export default function UploadZone({
   }, [router])
 
   // ── upload button tooltip ───────────────────────────────────────────────
-  function showUploadTooltip(kind: 'no-destination' | 'no-toggle') {
+  function showUploadTooltip(kind: 'no-destination' | 'no-toggle' | 'no-credits') {
     if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current)
     setUploadTooltip(kind)
     tooltipTimerRef.current = setTimeout(() => setUploadTooltip('none'), 4000)
