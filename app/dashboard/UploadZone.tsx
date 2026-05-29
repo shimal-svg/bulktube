@@ -1077,7 +1077,7 @@ export default function UploadZone({
               </div>
             ) : (
               <div className="space-y-3">
-                <p className="text-sm text-drrop-muted">No YouTube channel connected.</p>
+                <p className="text-sm text-drrop-muted">Upload your videos to your YouTube Channel</p>
                 <button
                   onClick={() => openAuthPopup('youtube')}
                   className="w-full rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
@@ -1160,7 +1160,7 @@ export default function UploadZone({
               </div>
             ) : (
               <div className="space-y-3">
-                <p className="text-sm text-drrop-muted">No Google Ads account connected.</p>
+                <p className="text-sm text-drrop-muted">Upload your videos to your Google Ads Account</p>
                 <button
                   onClick={() => openAuthPopup('google_ads')}
                   className="w-full rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
