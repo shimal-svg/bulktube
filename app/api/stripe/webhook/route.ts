@@ -79,7 +79,13 @@ export async function POST(request: Request) {
     event.type === "customer.subscription.created" ||
     event.type === "customer.subscription.updated"
   ) {
-    const subscription = event.data.object as Stripe.Subscription;
+    // current_period_start/end exist in the webhook payload but were removed from
+    // the Stripe SDK types in API version 2026-04-22.dahlia — access via intersection.
+    type SubscriptionWithPeriod = Stripe.Subscription & {
+      current_period_start: number
+      current_period_end: number
+    }
+    const subscription = event.data.object as SubscriptionWithPeriod;
     const userId = subscription.metadata?.user_id;
 
     if (!userId) {
