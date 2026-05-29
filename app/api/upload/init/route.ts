@@ -33,31 +33,28 @@ export async function POST(request: Request) {
     );
   }
 
-  // Credit pre-check: free uploads or credit packs
+  // Credit pre-check: free uploads or active subscription with remaining room
   const { data: userData } = await admin
     .from("users")
-    .select("free_uploads_used, free_uploads_limit")
+    .select("free_uploads_used, free_uploads_limit, subscription_tier, subscription_status, monthly_uploads_used, monthly_upload_limit")
     .eq("id", userId)
     .single();
 
   const hasFreeUpload =
     userData != null && userData.free_uploads_used < userData.free_uploads_limit;
 
-  if (!hasFreeUpload) {
-    const { data: pack } = await admin
-      .from("credit_packs")
-      .select("id")
-      .eq("user_id", userId)
-      .gt("credits_remaining", 0)
-      .limit(1)
-      .maybeSingle();
+  const hasActiveSub =
+    !!userData?.subscription_tier && userData?.subscription_status === "active";
 
-    if (!pack) {
-      return NextResponse.json(
-        { error: "No uploads remaining. Please purchase more credits." },
-        { status: 402 }
-      );
-    }
+  const subHasRoom =
+    hasActiveSub &&
+    (userData.monthly_uploads_used ?? 0) < (userData.monthly_upload_limit ?? 0);
+
+  if (!hasFreeUpload && !subHasRoom) {
+    return NextResponse.json(
+      { error: "No uploads remaining. Subscribe to continue." },
+      { status: 402 }
+    );
   }
 
   const body = await request.json();

@@ -341,8 +341,7 @@ export default function UploadZone({
 
   // ── modal / tooltip state ───────────────────────────────────────────────
   const [uploadLimitModal, setUploadLimitModal] = useState(false)
-  const [noCreditModal, setNoCreditModal] = useState(false)
-  const [uploadTooltip, setUploadTooltip] = useState<'none' | 'no-destination' | 'no-toggle'>('none')
+  const [uploadTooltip, setUploadTooltip] = useState<'none' | 'no-destination' | 'no-toggle' | 'no-credits'>('none')
   const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
 
@@ -667,17 +666,15 @@ export default function UploadZone({
     }
 
     const hasActiveSub = !!(subscriptionTier && subscriptionStatus === 'active')
-    if (!hasActiveSub && (freeUploadsRemaining ?? 0) === 0 && (packCreditsRemaining ?? 0) === 0) {
-      setNoCreditModal(true)
-      return
-    }
+    const subHasRoom = hasActiveSub && (monthlyUploadsUsed ?? 0) < (monthlyUploadLimit ?? 0)
+    const hasFreeUploads = (freeUploadsRemaining ?? 0) > 0
 
-    if (
-      hasActiveSub &&
-      monthlyUploadLimit != null &&
-      (monthlyUploadsUsed ?? 0) >= monthlyUploadLimit
-    ) {
-      setUploadLimitModal(true)
+    if (!hasFreeUploads && !subHasRoom) {
+      if (hasActiveSub) {
+        setUploadLimitModal(true)
+      } else {
+        showUploadTooltip('no-credits')
+      }
       return
     }
 
@@ -1006,10 +1003,17 @@ export default function UploadZone({
           {hasIdle && (
             <div className="relative">
               {uploadTooltip !== 'none' && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[220px] rounded-lg border border-drrop-border bg-[#111111] px-3 py-2 text-xs text-drrop-muted shadow-xl text-center z-20 leading-relaxed pointer-events-none">
-                  {uploadTooltip === 'no-destination'
-                    ? 'Connect a destination to upload'
-                    : 'Toggle on a destination to upload'}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[240px] rounded-lg border border-drrop-border bg-[#111111] px-3 py-2 text-xs text-drrop-muted shadow-xl text-center z-20 leading-relaxed">
+                  {uploadTooltip === 'no-destination' && 'Connect a destination to upload'}
+                  {uploadTooltip === 'no-toggle' && 'Toggle on a destination to upload'}
+                  {uploadTooltip === 'no-credits' && (
+                    <>
+                      No uploads remaining —{' '}
+                      <a href="/credits" className="underline hover:text-lime transition">
+                        Subscribe to continue
+                      </a>
+                    </>
+                  )}
                 </div>
               )}
               <button
@@ -1205,23 +1209,6 @@ export default function UploadZone({
           style={{ backgroundColor: '#c8f55a' }}
         >
           View Plans
-        </a>
-      </Modal>
-
-      {/* ── No credit modal ──────────────────────────────────────────── */}
-      <Modal open={noCreditModal} onClose={() => setNoCreditModal(false)}>
-        <h2 className="font-display font-bold text-lg tracking-[-0.03em] text-drrop-text mb-3">
-          No credits remaining
-        </h2>
-        <p className="text-sm text-drrop-muted mb-5">
-          You don&apos;t have enough credits to upload — subscribe to continue.
-        </p>
-        <a
-          href="/credits"
-          className="block w-full rounded-lg px-4 py-2.5 text-sm font-bold text-drrop text-center transition hover:opacity-90"
-          style={{ backgroundColor: '#c8f55a' }}
-        >
-          Subscribe →
         </a>
       </Modal>
 
