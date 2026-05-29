@@ -92,10 +92,16 @@ export default async function DashboardPage({
               {hasActiveSub ? (
                 <>
                   <p className="text-drrop-muted text-sm">
-                    Monthly uploads:{" "}
-                    <strong className="text-drrop-text font-semibold">
-                      {userData?.monthly_uploads_used ?? 0} / {userData?.monthly_upload_limit} used
-                    </strong>
+                    {userData?.subscription_tier === "agency_max" ? (
+                      <strong className="text-drrop-text font-semibold">Unlimited uploads</strong>
+                    ) : (
+                      <>
+                        Monthly uploads:{" "}
+                        <strong className="text-drrop-text font-semibold">
+                          {userData?.monthly_uploads_used ?? 0} / {userData?.monthly_upload_limit} used
+                        </strong>
+                      </>
+                    )}
                   </p>
                   <Link
                     href="/credits"

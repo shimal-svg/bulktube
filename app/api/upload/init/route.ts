@@ -46,9 +46,11 @@ export async function POST(request: Request) {
   const hasActiveSub =
     !!userData?.subscription_tier && userData?.subscription_status === "active";
 
+  // null limit means unlimited (agency_max); treat as always having room
   const subHasRoom =
     hasActiveSub &&
-    (userData.monthly_uploads_used ?? 0) < (userData.monthly_upload_limit ?? 0);
+    (userData.monthly_upload_limit === null ||
+      (userData.monthly_uploads_used ?? 0) < userData.monthly_upload_limit);
 
   if (!hasFreeUpload && !subHasRoom) {
     return NextResponse.json(

@@ -666,7 +666,8 @@ export default function UploadZone({
     }
 
     const hasActiveSub = !!(subscriptionTier && subscriptionStatus === 'active')
-    const subHasRoom = hasActiveSub && (monthlyUploadsUsed ?? 0) < (monthlyUploadLimit ?? 0)
+    // null limit means unlimited (agency_max); treat as always having room
+    const subHasRoom = hasActiveSub && (monthlyUploadLimit === null || (monthlyUploadsUsed ?? 0) < monthlyUploadLimit)
     const hasFreeUploads = (freeUploadsRemaining ?? 0) > 0
 
     if (!hasFreeUploads && !subHasRoom) {

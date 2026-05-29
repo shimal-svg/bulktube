@@ -7,6 +7,8 @@ type PriceIds = {
   starterAnnual: string
   agencyMonthly: string
   agencyAnnual: string
+  agencyMaxMonthly: string
+  agencyMaxAnnual: string
 }
 
 type PlanId = 'starter' | 'agency' | 'agency_max'
@@ -19,7 +21,9 @@ type Plan = {
   annualMonthly: number | null
   limit: string
   badge?: string
+  annualSavingsBadge?: string
   highlight?: boolean
+  ctaLabel?: string
 }
 
 const PLANS: Plan[] = [
@@ -44,10 +48,12 @@ const PLANS: Plan[] = [
   {
     id: 'agency_max',
     name: 'Agency Max',
-    monthlyPrice: null,
-    annualTotal: null,
-    annualMonthly: null,
+    monthlyPrice: 70,
+    annualTotal: 600,
+    annualMonthly: 50,
     limit: 'Unlimited uploads',
+    annualSavingsBadge: 'Save $240',
+    ctaLabel: 'Get Agency Max →',
   },
 ]
 
@@ -66,8 +72,9 @@ export default function PricingSection({
   const hasActiveSub = !!currentTier && currentStatus === 'active'
 
   function priceIdFor(plan: Plan): string | null {
-    if (plan.id === 'starter') return annual ? priceIds.starterAnnual : priceIds.starterMonthly
-    if (plan.id === 'agency')  return annual ? priceIds.agencyAnnual  : priceIds.agencyMonthly
+    if (plan.id === 'starter')    return annual ? priceIds.starterAnnual    : priceIds.starterMonthly
+    if (plan.id === 'agency')     return annual ? priceIds.agencyAnnual     : priceIds.agencyMonthly
+    if (plan.id === 'agency_max') return annual ? priceIds.agencyMaxAnnual  : priceIds.agencyMaxMonthly
     return null
   }
 
@@ -162,34 +169,26 @@ export default function PricingSection({
               </h3>
 
               <div>
-                {plan.monthlyPrice !== null ? (
-                  <>
-                    <p className="text-3xl font-bold text-drrop-text">
-                      ${annual ? plan.annualMonthly!.toFixed(2) : plan.monthlyPrice.toFixed(2)}
-                      <span className="text-base font-normal text-drrop-muted">/mo</span>
-                    </p>
-                    {annual && (
-                      <p className="text-xs text-drrop-muted mt-0.5">
-                        Billed ${plan.annualTotal}/year
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-3xl font-bold text-drrop-text">Custom</p>
+                <p className="text-3xl font-bold text-drrop-text">
+                  ${annual ? plan.annualMonthly!.toFixed(2) : plan.monthlyPrice!.toFixed(2)}
+                  <span className="text-base font-normal text-drrop-muted">/mo</span>
+                </p>
+                {annual && (
+                  <p className="text-xs text-drrop-muted mt-0.5">
+                    Billed ${plan.annualTotal}/year
+                  </p>
+                )}
+                {annual && plan.annualSavingsBadge && (
+                  <span className="inline-block mt-1.5 rounded-full bg-lime/20 px-2.5 py-0.5 text-xs font-semibold text-lime">
+                    {plan.annualSavingsBadge}
+                  </span>
                 )}
               </div>
 
               <p className="text-sm text-drrop-subtle">{plan.limit}</p>
 
               <div className="mt-auto pt-2">
-                {plan.id === 'agency_max' ? (
-                  <a
-                    href="/inquire"
-                    className="block w-full rounded-lg px-4 py-2.5 text-sm font-bold text-center border border-drrop-border text-drrop-muted hover:border-lime hover:text-lime transition"
-                  >
-                    Inquire
-                  </a>
-                ) : isCurrent ? (
+                {isCurrent ? (
                   <button
                     onClick={handleManage}
                     disabled={loading === 'manage'}
@@ -207,7 +206,7 @@ export default function PricingSection({
                         : 'bg-drrop border border-drrop-border text-drrop-text hover:border-lime hover:text-lime'
                     }`}
                   >
-                    {loading === plan.id ? 'Loading…' : 'Subscribe'}
+                    {loading === plan.id ? 'Loading…' : (plan.ctaLabel ?? 'Subscribe')}
                   </button>
                 )}
               </div>

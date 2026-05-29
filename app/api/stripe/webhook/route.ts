@@ -157,7 +157,7 @@ export async function POST(request: Request) {
   return NextResponse.json({ received: true });
 }
 
-function tierFromPrice(priceId: string | undefined): { tier: string; uploadLimit: number } {
+function tierFromPrice(priceId: string | undefined): { tier: string; uploadLimit: number | null } {
   if (
     priceId === process.env.STRIPE_STARTER_MONTHLY_PRICE_ID ||
     priceId === process.env.STRIPE_STARTER_ANNUAL_PRICE_ID
@@ -169,6 +169,12 @@ function tierFromPrice(priceId: string | undefined): { tier: string; uploadLimit
     priceId === process.env.STRIPE_AGENCY_ANNUAL_PRICE_ID
   ) {
     return { tier: "agency", uploadLimit: 100 };
+  }
+  if (
+    priceId === process.env.STRIPE_AGENCY_MAX_MONTHLY_PRICE_ID ||
+    priceId === process.env.STRIPE_AGENCY_MAX_YEARLY_PRICE_ID
+  ) {
+    return { tier: "agency_max", uploadLimit: null };
   }
   return { tier: "starter", uploadLimit: 40 };
 }

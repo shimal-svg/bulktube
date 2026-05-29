@@ -16,10 +16,12 @@ export default async function CreditsPage() {
     .single();
 
   const priceIds = {
-    starterMonthly: process.env.STRIPE_STARTER_MONTHLY_PRICE_ID!,
-    starterAnnual:  process.env.STRIPE_STARTER_ANNUAL_PRICE_ID!,
-    agencyMonthly:  process.env.STRIPE_AGENCY_MONTHLY_PRICE_ID!,
-    agencyAnnual:   process.env.STRIPE_AGENCY_ANNUAL_PRICE_ID!,
+    starterMonthly:   process.env.STRIPE_STARTER_MONTHLY_PRICE_ID!,
+    starterAnnual:    process.env.STRIPE_STARTER_ANNUAL_PRICE_ID!,
+    agencyMonthly:    process.env.STRIPE_AGENCY_MONTHLY_PRICE_ID!,
+    agencyAnnual:     process.env.STRIPE_AGENCY_ANNUAL_PRICE_ID!,
+    agencyMaxMonthly: process.env.STRIPE_AGENCY_MAX_MONTHLY_PRICE_ID!,
+    agencyMaxAnnual:  process.env.STRIPE_AGENCY_MAX_YEARLY_PRICE_ID!,
   };
 
   return (
