@@ -60,7 +60,7 @@ export default function PricingSection({
   currentTier: string | null
   currentStatus: string | null
 }) {
-  const [annual, setAnnual] = useState(false)
+  const [annual, setAnnual] = useState(true)
   const [loading, setLoading] = useState<string | null>(null)
 
   const hasActiveSub = !!currentTier && currentStatus === 'active'

@@ -40,10 +40,6 @@ export default async function CreditsPage() {
         <h1 className="font-display font-bold text-2xl tracking-[-0.04em] text-drrop-text mb-2 text-center">
           Choose a plan
         </h1>
-        <p className="text-drrop-muted text-sm text-center mb-10">
-          Upload limits reset at the start of each billing period. No rollover.
-        </p>
-
         <PricingSection
           priceIds={priceIds}
           currentTier={userData?.subscription_tier ?? null}
