@@ -339,10 +339,11 @@ export default function UploadZone({
   const [selectedAdsAccount, setSelectedAdsAccount] = useState<AdsAccount | null>(null)
   const [adsOAuthDone, setAdsOAuthDone] = useState(false)
 
-  // ── modal / edit state ──────────────────────────────────────────────────
-  const [uploadGateModal, setUploadGateModal] = useState(false)
+  // ── modal / tooltip state ───────────────────────────────────────────────
   const [uploadLimitModal, setUploadLimitModal] = useState(false)
   const [noCreditModal, setNoCreditModal] = useState(false)
+  const [uploadTooltip, setUploadTooltip] = useState<'none' | 'no-destination' | 'no-toggle'>('none')
+  const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
 
   // ── popup OAuth ─────────────────────────────────────────────────────────
@@ -381,6 +382,20 @@ export default function UploadZone({
     window.addEventListener('message', handleMessage)
     return () => window.removeEventListener('message', handleMessage)
   }, [router])
+
+  // ── upload button tooltip ───────────────────────────────────────────────
+  function showUploadTooltip(kind: 'no-destination' | 'no-toggle') {
+    if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current)
+    setUploadTooltip(kind)
+    tooltipTimerRef.current = setTimeout(() => setUploadTooltip('none'), 4000)
+  }
+
+  useEffect(() => {
+    if (uploadTooltip === 'none') return
+    function dismiss() { setUploadTooltip('none') }
+    document.addEventListener('click', dismiss)
+    return () => document.removeEventListener('click', dismiss)
+  }, [uploadTooltip])
 
   // ── load persisted preferences on mount ────────────────────────────────
   useEffect(() => {
@@ -641,8 +656,13 @@ export default function UploadZone({
     const targets = items.filter(i => !i.loading && (i.uploadStatus === 'idle' || i.uploadStatus === 'failed'))
     if (!targets.length) return
 
+    if (!youtubeConnected && !adsConnected) {
+      showUploadTooltip('no-destination')
+      return
+    }
+
     if (activeDestinations === 0) {
-      setUploadGateModal(true)
+      showUploadTooltip('no-toggle')
       return
     }
 
@@ -984,17 +1004,26 @@ export default function UploadZone({
           )}
 
           {hasIdle && (
-            <button
-              onClick={startUpload}
-              disabled={anyLoading || batchUploading}
-              className="w-full rounded-lg bg-lime text-drrop px-4 py-3 text-sm font-bold tracking-[-0.02em] hover:bg-[#d9ff6a] transition disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {anyLoading
-                ? 'Reading metadata…'
-                : batchUploading
-                ? 'Uploading…'
-                : `Upload ${idleItems.length} video${idleItems.length !== 1 ? 's' : ''}`}
-            </button>
+            <div className="relative">
+              {uploadTooltip !== 'none' && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[220px] rounded-lg border border-drrop-border bg-[#111111] px-3 py-2 text-xs text-drrop-muted shadow-xl text-center z-20 leading-relaxed pointer-events-none">
+                  {uploadTooltip === 'no-destination'
+                    ? 'Connect a destination to upload'
+                    : 'Toggle on a destination to upload'}
+                </div>
+              )}
+              <button
+                onClick={startUpload}
+                disabled={anyLoading || batchUploading}
+                className="w-full rounded-lg bg-lime text-drrop px-4 py-3 text-sm font-bold tracking-[-0.02em] hover:bg-[#d9ff6a] transition disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {anyLoading
+                  ? 'Reading metadata…'
+                  : batchUploading
+                  ? 'Uploading…'
+                  : `Upload ${idleItems.length} video${idleItems.length !== 1 ? 's' : ''}`}
+              </button>
+            </div>
           )}
         </div>
 
@@ -1196,33 +1225,6 @@ export default function UploadZone({
         </a>
       </Modal>
 
-      {/* ── Upload gate modal ─────────────────────────────────────────── */}
-      <Modal open={uploadGateModal} onClose={() => setUploadGateModal(false)}>
-        <h2 className="font-display font-bold text-lg tracking-[-0.03em] text-drrop-text mb-5">
-          Connect a destination to upload
-        </h2>
-        <div className="space-y-3">
-          <button
-            onClick={() => { setUploadGateModal(false); openAuthPopup('youtube') }}
-            className="w-full rounded-lg px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
-            style={{ backgroundColor: '#FF0000' }}
-          >
-            Connect YouTube
-          </button>
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-drrop-border" />
-            <span className="text-xs text-drrop-muted">or</span>
-            <div className="flex-1 h-px bg-drrop-border" />
-          </div>
-          <button
-            onClick={() => { setUploadGateModal(false); openAuthPopup('google_ads') }}
-            className="w-full rounded-lg px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90"
-            style={{ background: 'linear-gradient(135deg, #4285F4, #34A853, #FBBC05)' }}
-          >
-            Connect Google Ads
-          </button>
-        </div>
-      </Modal>
     </>
   )
 }
