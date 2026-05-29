@@ -64,26 +64,37 @@ export async function POST(request: Request) {
       console.log("[upload/complete] ⚠ 0 rows updated — uploadId may not exist or userId mismatch");
     }
 
-    // Deduct credit: free uploads first, then oldest non-expired credit pack
+    // Deduct credit based on account type
     const { data: userData, error: userError } = await admin
       .from("users")
-      .select("free_uploads_used, free_uploads_limit")
+      .select("free_uploads_used, free_uploads_limit, subscription_tier, subscription_status, monthly_uploads_used")
       .eq("id", userId)
       .single();
 
     console.log(
-      "[upload/complete] credits — used:", userData?.free_uploads_used,
-      "| limit:", userData?.free_uploads_limit,
+      "[upload/complete] credits — tier:", userData?.subscription_tier,
+      "| status:", userData?.subscription_status,
+      "| monthly_used:", userData?.monthly_uploads_used,
+      "| free_used:", userData?.free_uploads_used,
       "| fetchError:", userError ? JSON.stringify(userError) : "none"
     );
 
-    if (userData && userData.free_uploads_used < userData.free_uploads_limit) {
+    if (userData?.subscription_tier && userData?.subscription_status === "active") {
+      // Subscription user: increment monthly uploads used
+      const { error: deductError } = await admin
+        .from("users")
+        .update({ monthly_uploads_used: (userData.monthly_uploads_used ?? 0) + 1 })
+        .eq("id", userId);
+      console.log("[upload/complete] monthly upload counted | error:", deductError ? JSON.stringify(deductError) : "none");
+    } else if (userData && userData.free_uploads_used < userData.free_uploads_limit) {
+      // Free user with remaining free uploads
       const { error: deductError } = await admin
         .from("users")
         .update({ free_uploads_used: userData.free_uploads_used + 1 })
         .eq("id", userId);
       console.log("[upload/complete] free upload deducted | error:", deductError ? JSON.stringify(deductError) : "none");
     } else {
+      // Fall back to credit pack
       const { data: pack, error: packError } = await admin
         .from("credit_packs")
         .select("id, credits_remaining")

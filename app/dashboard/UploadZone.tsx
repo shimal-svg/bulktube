@@ -295,10 +295,18 @@ export default function UploadZone({
   channelName,
   channelThumbnail,
   sheetsUrl,
+  subscriptionTier,
+  subscriptionStatus,
+  monthlyUploadsUsed,
+  monthlyUploadLimit,
 }: {
   channelName?: string | null
   channelThumbnail?: string | null
   sheetsUrl?: string | null
+  subscriptionTier?: string | null
+  subscriptionStatus?: string | null
+  monthlyUploadsUsed?: number | null
+  monthlyUploadLimit?: number | null
 }) {
   // ── core state ─────────────────────────────────────────────────────────
   const [items, setItems] = useState<VideoItem[]>([])
@@ -329,6 +337,7 @@ export default function UploadZone({
 
   // ── modal / edit state ──────────────────────────────────────────────────
   const [uploadGateModal, setUploadGateModal] = useState(false)
+  const [uploadLimitModal, setUploadLimitModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
 
   // ── popup OAuth ─────────────────────────────────────────────────────────
@@ -616,6 +625,16 @@ export default function UploadZone({
 
     if (activeDestinations === 0) {
       setUploadGateModal(true)
+      return
+    }
+
+    if (
+      subscriptionTier &&
+      subscriptionStatus === 'active' &&
+      monthlyUploadLimit != null &&
+      (monthlyUploadsUsed ?? 0) >= monthlyUploadLimit
+    ) {
+      setUploadLimitModal(true)
       return
     }
 
@@ -1119,6 +1138,23 @@ export default function UploadZone({
 
         </div>
       </div>
+
+      {/* ── Upload limit modal ────────────────────────────────────────── */}
+      <Modal open={uploadLimitModal} onClose={() => setUploadLimitModal(false)}>
+        <h2 className="font-display font-bold text-lg tracking-[-0.03em] text-drrop-text mb-3">
+          Monthly limit reached
+        </h2>
+        <p className="text-sm text-drrop-muted mb-5">
+          You&apos;ve used all {monthlyUploadLimit} uploads this month. Upgrade to Agency or wait until your next billing date.
+        </p>
+        <a
+          href="/credits"
+          className="block w-full rounded-lg px-4 py-2.5 text-sm font-bold text-drrop text-center transition hover:opacity-90"
+          style={{ backgroundColor: '#c8f55a' }}
+        >
+          View Plans
+        </a>
+      </Modal>
 
       {/* ── Upload gate modal ─────────────────────────────────────────── */}
       <Modal open={uploadGateModal} onClose={() => setUploadGateModal(false)}>
